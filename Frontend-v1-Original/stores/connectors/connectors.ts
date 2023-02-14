@@ -7,12 +7,13 @@ const POLLING_INTERVAL = 12000;
 const RPC_URLS = {
   740: "https://eth.plexnode.wtf/",
   7700: "https://canto.slingshot.finance/",
+  421613: "https://goerli-rollup.arbitrum.io/rpc",
 };
 
 let obj: {
   [key: number]: string;
 } = {
-  7700: RPC_URLS[7700],
+  421613: RPC_URLS[421613],
 };
 
 if (process.env.NEXT_PUBLIC_CHAINID === "740") {
