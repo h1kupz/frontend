@@ -82,7 +82,9 @@ class Store {
 
     dispatcher.register(
       function (this: Store, payload) {
-        console.log("<< Payload of dispatched event", payload);
+        if (process.env.NODE_ENV === "development") {
+          console.log("<< Payload of dispatched event", payload);
+        }
         switch (payload.type) {
           case ACTIONS.CONFIGURE_SS:
             this.configure(payload);
@@ -5339,17 +5341,17 @@ class Store {
         }
       }
       // TODO we probably dont even need claimable any more
-      // const filteredFees: Pair[] = []; // Pair with rewardType set to "Fees"
-      // for (let i = 0; i < pairs.length; i++) {
-      //   let pair = Object.assign({}, pairs[i]);
-      //   if (
-      //     BigNumber(pair.claimable0).gt(0) ||
-      //     BigNumber(pair.claimable1).gt(0)
-      //   ) {
-      //     pair.rewardType = "Fees";
-      //     filteredFees.push(pair);
-      //   }
-      // }
+      const filteredFees: Pair[] = []; // Pair with rewardType set to "Fees"
+      for (let i = 0; i < pairs.length; i++) {
+        let pair = Object.assign({}, pairs[i]);
+        if (
+          BigNumber(pair.claimable0).gt(0) ||
+          BigNumber(pair.claimable1).gt(0)
+        ) {
+          pair.rewardType = "Fees";
+          filteredFees.push(pair);
+        }
+      }
 
       const rewardsEarned = await Promise.all(
         filteredPairs2.map(async (pair) => {
@@ -5384,14 +5386,14 @@ class Store {
         }
       }
 
-      // console.log(filteredBribes, "<< filtered bribes");
-      // console.log(filteredFees, "<< fees");
-      // console.log(filteredRewards, "<< rewards");
-      // console.log(veDistReward, "<< dist rewards");
+      console.log(filteredBribes, "<< filtered bribes");
+      console.log(filteredFees, "<< fees");
+      console.log(filteredRewards, "<< rewards");
+      console.log(veDistReward, "<< dist rewards");
 
       const rewards = {
         bribes: filteredBribes,
-        // fees: filteredFees,
+        fees: filteredFees,
         rewards: filteredRewards,
         veDist: veDistReward,
       };
