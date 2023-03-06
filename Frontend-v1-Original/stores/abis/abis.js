@@ -11,6 +11,7 @@ import { veDistABI } from "./veDistABI";
 import { minterABI } from "./minterABI";
 import { wethABI } from "./wethABI";
 import { wethImplABI } from "./wethImplABI";
+import { flowConvertorABI } from "./flowConvertorABI";
 
 export default {
   erc20ABI,
@@ -26,4 +27,5 @@ export default {
   minterABI,
   wethABI,
   wethImplABI,
+  flowConvertorABI,
 };

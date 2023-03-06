@@ -5,6 +5,7 @@ import stores from ".";
 import { CONTRACTS, NATIVE_TOKEN } from "./constants/constants";
 
 import {
+  CantoContracts,
   DefiLlamaTokenPrice,
   DexScrennerPair,
   TokenForPrice,
@@ -29,6 +30,30 @@ class Helper {
   private dexGuruEndpoint =
     "https://api.dev.dex.guru/v1/chain/10/tokens/%/market";
   private tokenPricesMap = new Map<string, number>();
+
+  // TEMPORARY
+  getV1Balance = async () => {
+    const web3 = await stores.accountStore.getWeb3Provider();
+    if (!web3) {
+      console.warn("web3 not found");
+      return null;
+    }
+    const account = stores.accountStore.getStore("account");
+    if (!account) {
+      console.warn("account not found");
+      return null;
+    }
+
+    const v1Contract = new web3.eth.Contract(
+      CONTRACTS.GOV_TOKEN_ABI as AbiItem[],
+      (CONTRACTS as CantoContracts).FLOW_V1_ADDRESS
+    );
+    const balance = await v1Contract.methods.balanceOf(account.address).call();
+    const _v1Balance = BigNumber(balance)
+      .div(10 ** 18)
+      .toString();
+    return _v1Balance;
+  };
 
   get getTokenPricesMap() {
     return this.tokenPricesMap;

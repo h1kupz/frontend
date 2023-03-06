@@ -620,7 +620,6 @@ function Setup() {
                 className: classes.largeInput,
               }}
             />
-
             <Typography color="textSecondary" className={classes.smallerText}>
               {assetValue?.symbol}
             </Typography>

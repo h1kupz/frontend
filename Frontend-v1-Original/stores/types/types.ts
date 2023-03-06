@@ -144,6 +144,9 @@ interface TestnetContracts extends GeneralContracts {
   ETH_LOGO: string;
 }
 interface CantoContracts extends GeneralContracts {
+  FLOW_V1_ADDRESS: string;
+  FLOW_CONVERTOR_ADDRESS: string;
+  FLOW_CONVERTOR_ABI: any[];
   WCANTO_ADDRESS: string;
   WCANTO_NAME: string;
   WCANTO_SYMBOL: string;

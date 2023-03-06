@@ -8,6 +8,13 @@
   }
 }
 
+@layer utilities {
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    @apply appearance-none;
+  }
+}
+
 /*FIXME*/
 input[type="date"]::-webkit-calendar-picker-indicator {
   background: url("/calendar.svg") no-repeat;

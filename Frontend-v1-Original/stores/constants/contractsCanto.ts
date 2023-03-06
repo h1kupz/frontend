@@ -1,5 +1,9 @@
 import abis from "../abis/abis";
-// this is arb mainnet
+
+export const FLOW_V1_ADDRESS = "0x2Baec546a92cA3469f71b7A091f7dF61e5569889";
+export const FLOW_CONVERTOR_ADDRESS = "";
+export const FLOW_CONVERTOR_ABI = abis.flowConvertorABI;
+
 export const GOV_TOKEN_ADDRESS = "0x2Baec546a92cA3469f71b7A091f7dF61e5569889"; // canto
 export const GOV_TOKEN_NAME = "Flow";
 export const GOV_TOKEN_SYMBOL = "FLOW";

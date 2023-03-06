@@ -7,12 +7,17 @@ import { withTheme } from "@mui/styles";
 
 import classes from "./navigation.module.css";
 
+const migrateModeActive = process.env.NEXT_PUBLIC_MIGRATE_MODE === "true";
+
 function Navigation() {
   const router = useRouter();
   const [active, setActive] = useState("swap");
 
   useEffect(() => {
     const activePath = router.asPath;
+    if (activePath.includes("migration")) {
+      setActive("migration");
+    }
     if (activePath.includes("home")) {
       setActive("home");
     }
@@ -42,6 +47,7 @@ function Navigation() {
   const renderNavs = () => {
     return (
       <div className={classes.navToggles}>
+        {migrateModeActive && renderSubNav("Migration", "migration")}
         {renderSubNav("Swap", "swap")}
         {renderSubNav("Liquidity", "liquidity")}
         {renderSubNav("Vest", "vest")}

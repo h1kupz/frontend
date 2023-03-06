@@ -107,8 +107,11 @@ const errorMap = new Map<string, string>([
   ],
   ["attached", "You need to reset your nft first"],
   ["TOKEN ALREADY VOTED", "You have already voted for this token"],
-  ["INSUFFICIENT A BALANCE", "Router doesn't have enough token 0 balance"],
-  ["INSUFFICIENT B BALANCE", "Router doesn't have enough token 1 balance"],
+  ["TOKEN_ALREADY_VOTED_THIS_EPOCH", "You have already voted for this token"],
+  ["INSUFFICIENT A BALANCE", "Router doesn't have enough token in balance"],
+  ["INSUFFICIENT_A_BALANCE", "Router doesn't have enough token in balance"],
+  ["INSUFFICIENT B BALANCE", "Router doesn't have enough token out balance"],
+  ["INSUFFICIENT_B_BALANCE", "Router doesn't have enough token out balance"],
   // some wallet some rpc not sure
   [
     "EIP-1559",
