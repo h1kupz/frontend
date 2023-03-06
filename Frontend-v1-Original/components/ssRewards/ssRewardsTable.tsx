@@ -386,11 +386,11 @@ export default function EnhancedTable({
         type: ACTIONS.CLAIM_BRIBE,
         content: { pair: reward, tokenID },
       });
-      // } else if (reward.rewardType === "Fees") {
-      //   stores.dispatcher.dispatch({
-      //     type: ACTIONS.CLAIM_PAIR_FEES,
-      //     content: { pair: reward, tokenID },
-      //   });
+      } else if (reward.rewardType === "Fees") {
+        stores.dispatcher.dispatch({
+          type: ACTIONS.CLAIM_PAIR_FEES,
+          content: { pair: reward, tokenID },
+        });
     } else if (reward.rewardType === "Reward") {
       stores.dispatcher.dispatch({
         type: ACTIONS.CLAIM_REWARD,
@@ -438,7 +438,7 @@ export default function EnhancedTable({
                       <TableCell className={classes.cell}>
                         {[
                           "Bribe",
-                          // "Fees",
+                          "Fees",
                           "Reward",
                         ].includes(row.rewardType) && (
                           <div className={classes.inline}>
@@ -581,7 +581,7 @@ export default function EnhancedTable({
                                 </div>
                               </>
                             )}
-                          {/* {row &&
+                          {row &&
                             row.rewardType === "Fees" &&
                             row.balance &&
                             row.totalSupply && (
@@ -625,7 +625,7 @@ export default function EnhancedTable({
                                   </Typography>
                                 </div>
                               </>
-                            )} */}
+                            )}
                           {row &&
                             row.rewardType === "Reward" &&
                             row.gauge &&
@@ -737,7 +737,7 @@ export default function EnhancedTable({
                                 </div>
                               );
                             })}
-                          {/* {row && row.rewardType === "Fees" && (
+                          {row && row.rewardType === "Fees" && (
                             <>
                               <div className={classes.inlineEnd}>
                                 <img
@@ -804,7 +804,7 @@ export default function EnhancedTable({
                                 </Typography>
                               </div>
                             </>
-                          )} */}
+                          )}
                           {row && row.rewardType === "Reward" && (
                             <>
                               <div className={classes.inlineEnd}>

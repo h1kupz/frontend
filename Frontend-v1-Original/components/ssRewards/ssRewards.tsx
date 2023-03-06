@@ -68,16 +68,16 @@ export default function ssRewards() {
       if (
         rew &&
         rew.bribes &&
-        // rew.fees &&
+        rew.fees &&
         rew.rewards &&
         rew.veDist &&
         rew.bribes.length >= 0 &&
-        // rew.fees.length >= 0 &&
+        rew.fees.length >= 0 &&
         rew.rewards.length >= 0
       ) {
         setRewards([
           ...rew.bribes,
-          // ...rew.fees,
+          ...rew.fees,
           ...rew.rewards,
           ...rew.veDist,
         ]);
@@ -88,16 +88,16 @@ export default function ssRewards() {
       if (
         re &&
         re.bribes &&
-        // re.fees &&
+        re.fees &&
         re.rewards &&
         re.veDist &&
         re.bribes.length >= 0 &&
-        // re.fees.length >= 0 &&
+        re.fees.length >= 0 &&
         re.rewards.length >= 0
       ) {
         setRewards([
           ...re.bribes,
-          // ...re.fees,
+          ...re.fees,
           ...re.rewards,
           ...re.veDist,
         ]);
@@ -133,7 +133,7 @@ export default function ssRewards() {
 
     stores.emitter.on(ACTIONS.CLAIM_BRIBE_RETURNED, claimReturned);
     stores.emitter.on(ACTIONS.CLAIM_REWARD_RETURNED, claimReturned);
-    // stores.emitter.on(ACTIONS.CLAIM_PAIR_FEES_RETURNED, claimReturned);
+    stores.emitter.on(ACTIONS.CLAIM_PAIR_FEES_RETURNED, claimReturned);
     stores.emitter.on(ACTIONS.CLAIM_VE_DIST_RETURNED, claimReturned);
     stores.emitter.on(ACTIONS.CLAIM_ALL_REWARDS_RETURNED, claimAllReturned);
     return () => {
@@ -145,10 +145,10 @@ export default function ssRewards() {
         ACTIONS.CLAIM_REWARD_RETURNED,
         claimReturned
       );
-      // stores.emitter.removeListener(
-      //   ACTIONS.CLAIM_PAIR_FEES_RETURNED,
-      //   claimReturned
-      // );
+      stores.emitter.removeListener(
+        ACTIONS.CLAIM_PAIR_FEES_RETURNED,
+        claimReturned
+      );
       stores.emitter.removeListener(
         ACTIONS.CLAIM_VE_DIST_RETURNED,
         claimReturned

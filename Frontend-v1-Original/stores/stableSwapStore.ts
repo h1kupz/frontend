@@ -30,6 +30,8 @@ import type {
   VestNFT,
 } from "./types/types";
 
+import v1BrokenPairs from "./_cantoV1";
+
 const isArbitrum = process.env.NEXT_PUBLIC_CHAINID === "42161";
 
 const tokenlist = isArbitrum ? tokenlistArb : tokenlistCan;
@@ -82,7 +84,9 @@ class Store {
 
     dispatcher.register(
       function (this: Store, payload) {
-        console.log("<< Payload of dispatched event", payload);
+        if (process.env.NODE_ENV === "development") {
+          console.log("<< Payload of dispatched event", payload);
+        }
         switch (payload.type) {
           case ACTIONS.CONFIGURE_SS:
             this.configure(payload);
@@ -5481,17 +5485,18 @@ class Store {
         }
       }
       // TODO we probably dont even need claimable any more
-      // const filteredFees: Pair[] = []; // Pair with rewardType set to "Fees"
-      // for (let i = 0; i < pairs.length; i++) {
-      //   let pair = Object.assign({}, pairs[i]);
-      //   if (
-      //     BigNumber(pair.claimable0).gt(0) ||
-      //     BigNumber(pair.claimable1).gt(0)
-      //   ) {
-      //     pair.rewardType = "Fees";
-      //     filteredFees.push(pair);
-      //   }
-      // }
+      const filteredFees: Pair[] = []; // Pair with rewardType set to "Fees"
+      for (let i = 0; i < pairs.length; i++) {
+        let pair = Object.assign({}, pairs[i]);
+        if (
+          (BigNumber(pair.claimable0).gt(0) ||
+            BigNumber(pair.claimable1).gt(0)) &&
+          !v1BrokenPairs.includes(pair.symbol)
+        ) {
+          pair.rewardType = "Fees";
+          filteredFees.push(pair);
+        }
+      }
 
       const rewardsEarned = await Promise.all(
         filteredPairs2.map(async (pair) => {
@@ -5533,7 +5538,7 @@ class Store {
 
       const rewards = {
         bribes: filteredBribes,
-        // fees: filteredFees,
+        fees: filteredFees,
         rewards: filteredRewards,
         veDist: veDistReward,
       };
@@ -5639,7 +5644,7 @@ class Store {
 
       // ADD TRNASCTIONS TO TRANSACTION QUEUE DISPLAY
       let claimTXID = this.getTXUUID();
-      // let feeClaimTXIDs = [];
+      let feeClaimTXIDs = [];
       let rewardClaimTXIDs = [];
       let distributionClaimTXIDs = [];
 
@@ -5647,9 +5652,9 @@ class Store {
         return pair.rewardType === "Bribe";
       });
 
-      // let feePairs = pairs.filter((pair) => {
-      //   return pair.rewardType === "Fees";
-      // });
+      let feePairs = pairs.filter((pair) => {
+        return pair.rewardType === "Fees";
+      });
 
       let rewardPairs = pairs.filter((pair) => {
         return pair.rewardType === "Reward";
@@ -5670,7 +5675,7 @@ class Store {
 
       if (
         bribePairs.length == 0 &&
-        // feePairs.length == 0 &&
+        feePairs.length == 0 &&
         rewardPairs.length == 0
       ) {
         this.emitter.emit(ACTIONS.ERROR, "Nothing to claim");
@@ -5692,18 +5697,18 @@ class Store {
         });
       }
 
-      // if (feePairs.length > 0) {
-      //   for (let i = 0; i < feePairs.length; i++) {
-      //     const newClaimTX = this.getTXUUID();
+      if (feePairs.length > 0) {
+        for (let i = 0; i < feePairs.length; i++) {
+          const newClaimTX = this.getTXUUID();
 
-      //     feeClaimTXIDs.push(newClaimTX);
-      //     sendOBJ.transactions.push({
-      //       uuid: newClaimTX,
-      //       description: `Claiming fees for ${feePairs[i].symbol}`,
-      //       status: "WAITING",
-      //     });
-      //   }
-      // }
+          feeClaimTXIDs.push(newClaimTX);
+          sendOBJ.transactions.push({
+            uuid: newClaimTX,
+            description: `Claiming fees for ${feePairs[i].symbol}`,
+            status: "WAITING",
+          });
+        }
+      }
 
       if (rewardPairs.length > 0) {
         for (let i = 0; i < rewardPairs.length; i++) {
@@ -5767,38 +5772,38 @@ class Store {
         await Promise.all([claimPromise]);
       }
 
-      // if (feePairs.length > 0) {
-      //   for (let i = 0; i < feePairs.length; i++) {
-      //     const pairContract = new web3.eth.Contract(
-      //       CONTRACTS.PAIR_ABI as AbiItem[],
-      //       feePairs[i].address
-      //     );
+      if (feePairs.length > 0) {
+        for (let i = 0; i < feePairs.length; i++) {
+          const pairContract = new web3.eth.Contract(
+            CONTRACTS.PAIR_ABI as AbiItem[],
+            feePairs[i].address
+          );
 
-      //     const claimPromise = new Promise<void>((resolve, reject) => {
-      //       context._callContractWait(
-      //         web3,
-      //         pairContract,
-      //         "claimFees",
-      //         [],
-      //         account,
-      //         gasPrice,
-      //         null,
-      //         null,
-      //         feeClaimTXIDs[i],
-      //         (err) => {
-      //           if (err) {
-      //             reject(err);
-      //             return;
-      //           }
+          const claimPromise = new Promise<void>((resolve, reject) => {
+            context._callContractWait(
+              web3,
+              pairContract,
+              "claimFees",
+              [],
+              account,
+              gasPrice,
+              null,
+              null,
+              feeClaimTXIDs[i],
+              (err) => {
+                if (err) {
+                  reject(err);
+                  return;
+                }
 
-      //           resolve();
-      //         }
-      //       );
-      //     });
+                resolve();
+              }
+            );
+          });
 
-      //     await Promise.all([claimPromise]);
-      //   }
-      // }
+          await Promise.all([claimPromise]);
+        }
+      }
 
       if (rewardPairs.length > 0) {
         for (let i = 0; i < rewardPairs.length; i++) {
