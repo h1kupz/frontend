@@ -1,11 +1,11 @@
 const v1BrokenPairs = [
-  "VolatileV1 AMM - USDC/WCANTO",
-  "VolatileV1 AMM - CBONK/WCANTO",
-  "VolatileV1 AMM - OSMO/NOTE",
-  "VolatileV1 AMM - CMDX/NOTE",
-  "VolatileV1 AMM - OSMO/WCANTO",
-  "VolatileV1 AMM - CRE/WCANTO",
-  "VolatileV1 AMM - AKT/WCANTO",
-  "VolatileV1 AMM - CMDX/WCANTO",
+  "sAMM-USDC/WCANTO",
+  "vAMM-CBONK/WCANTO",
+  "vAMM-OSMO/NOTE",
+  "vAMM-CMDX/NOTE",
+  "vAMM-OSMO/WCANTO",
+  "vAMM-CRE/WCANTO",
+  "vAMM-AKT/WCANTO",
+  "vAMM-CMDX/WCANTO",
 ];
 export default v1BrokenPairs;
