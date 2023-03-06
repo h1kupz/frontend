@@ -1,10 +1,8 @@
 import BribeCreate from "../../../components/ssBribeCreate/ssBribeCreate";
 
-import classes from "./create.module.css";
-
 function Bribe() {
   return (
-    <div className={classes.container}>
+    <div className="h-100 w-100 relative mt-0 mb-16 flex flex-col pt-16 lg:pt-44">
       <BribeCreate />
     </div>
   );

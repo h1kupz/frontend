@@ -11,16 +11,26 @@ function Home() {
   const scrollTo = useScrollTo();
 
   return (
-    <div className={classes.ffContainer}>
-      <div className={classes.contentContainerFull}>
-        <Grid container spacing={2} className={classes.homeContentMain}>
+    <div className="relative mt-0 flex h-full w-full flex-col pt-20 lg:pt-28">
+      <div className="w-100 relative h-screen">
+        <Grid
+          container
+          spacing={2}
+          className="absolute top-1/2 left-1/2 z-[2] h-auto max-w-[50vw] -translate-x-1/2 -translate-y-1/2 text-center md:max-w-[80vw]"
+        >
           <Grid item lg={12} md={12} sm={12} xs={12}>
-            <Typography variant="h1" className={classes.preTitle}>
+            <Typography
+              variant="h1"
+              className="relative bottom-0 mb-5 animate-titleAnim font-['Monument'] text-lg font-thin uppercase tracking-wider text-[#06d3d7] delay-[0s]"
+            >
               Canto Liquidity Layer
             </Typography>
           </Grid>
           <Grid item lg={12} md={12} sm={12} xs={12}>
-            <Typography variant="h1" className={classes.mainTitle}>
+            <Typography
+              variant="h1"
+              className="relative bottom-0 mb-6 animate-titleAnim text-center font-['Monument'] text-3xl delay-200 sm:text-4xl md:mb-8 md:text-6xl"
+            >
               Low cost stable coin swaps
             </Typography>
           </Grid>
@@ -28,7 +38,7 @@ function Home() {
             <Grid container spacing={2}>
               <Grid item lg={6} md={6} sm={12} xs={12}>
                 <Button
-                  className={classes.buttonInfo}
+                  className="relative bottom-0 min-w-full animate-titleAnim bg-[#212b48] pl-3 pt-5 pr-[10px] pb-5 font-['Monument'] capitalize text-[#7e99b0] delay-[400ms] max-md:float-none max-md:m-0 max-md:w-full"
                   onClick={() =>
                     scrollTo({ top: 1000, left: 0, behavior: "smooth" })
                   }
@@ -38,7 +48,7 @@ function Home() {
               </Grid>
               <Grid item lg={6} md={6} sm={12} xs={12}>
                 <Button
-                  className={classes.buttonEnter}
+                  className="relative bottom-0 min-w-full animate-titleAnim bg-[#06d3d71a] pl-3 pt-5 pr-[10px] pb-5 font-['Monument'] capitalize text-[#06d3d7] delay-[600ms] max-md:float-none max-md:m-0 max-md:w-full"
                   onClick={() => router.push("/swap")}
                 >
                   Enter App
@@ -48,25 +58,36 @@ function Home() {
           </Grid>
         </Grid>
       </div>
-
-      <div id="info" className={classes.contentContainerFullTwo}>
-        <div className={classes.floatingSphere}></div>
-
-        <Grid container spacing={3} className={classes.homeContentMain}>
+      <div id="info" className="relative h-screen w-full">
+        <div className="z-[1] hidden -translate-x-1/2 -translate-y-1/2 bg-homePage bg-cover bg-no-repeat opacity-50 mix-blend-lighten md:absolute md:top-[5%] md:left-1/2 md:h-[600px] md:w-[600px]"></div>
+        <Grid
+          container
+          spacing={3}
+          className="absolute top-1/2 left-1/2 z-[2] h-auto max-w-[80vw] -translate-x-1/2 -translate-y-1/2 text-center md:max-w-[50vw]"
+        >
           <Grid item lg={12} md={12} sm={12} xs={12}>
-            <Typography variant="h1" className={classes.secTitle}>
+            <Typography
+              variant="h1"
+              className="mb-5 text-center font-['Monument'] text-lg sm:text-3xl"
+            >
               Welcome to Velocimeter
             </Typography>
           </Grid>
           <Grid item lg={12} md={12} sm={12} xs={12}>
-            <Typography variant="body1" className={classes.mainDescription}>
+            <Typography
+              variant="body1"
+              className="mb-5 font-['Inter'] text-sm text-white sm:text-base md:text-lg"
+            >
               Velocimeter officially launched in January 2023 with a collective
               goal of fair and balanced access to DeFi. Velocimeter is a
               decentralized exchange that has launched on the Arbitrum network
               with low fees, near 0 slippage on correlated assets and a strong
               focus on secondary markets for tokenized locks as NFT’s.
             </Typography>
-            <Typography variant="body2" className={classes.secDescription}>
+            <Typography
+              variant="body2"
+              className="mb-5 text-xs text-[#f2f2f2] sm:text-sm md:text-base"
+            >
               One segment of the cryptocurrency landscape that has shown
               incredible potential is the swapping of stablecoins and volatile
               assets. Velocimeter Swap offers users quick, seamless and cheap
@@ -75,7 +96,7 @@ function Home() {
           </Grid>
           <Grid item lg={12} md={12} sm={12} xs={12}>
             <Button
-              className={classes.buttonEnterSingle}
+              className="min-w-full bg-[#06d3d71a] pl-3 pt-5 pr-[10px] pb-5 font-['Monument'] capitalize text-[#06d3d7] max-md:w-full"
               onClick={() => router.push("/swap")}
             >
               Enter App

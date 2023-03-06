@@ -7,8 +7,6 @@ import Unlock from "../../components/unlock/unlockModal";
 import stores from "../../stores";
 import { ACTIONS } from "../../stores/constants/constants";
 
-import classes from "./rewards.module.css";
-
 function Rewards({ changeTheme }) {
   const accountStore = stores.accountStore.getStore("account");
   const [account, setAccount] = useState(accountStore);
@@ -44,31 +42,32 @@ function Rewards({ changeTheme }) {
   };
 
   return (
-    <div className={classes.ffContainer}>
+    <div className="relative mt-0 flex h-full w-full flex-col pt-8 sm:pt-20 lg:pt-28">
       {account && account.address ? (
-        <div className={classes.connected}>
+        <div>
           <SSRewards />
         </div>
       ) : (
-        <Paper className={classes.notConnectedContent}>
-          <div className={classes.contentFloat}>
-            <Typography className={classes.mainHeadingNC} variant="h1">
+        <Paper className="fixed top-0 flex h-[calc(100%-150px)] w-[calc(100%-80px)] flex-col flex-wrap items-center justify-center bg-[rgba(17,23,41,0.2)] p-12 text-center shadow-none max-lg:my-auto max-lg:mt-24 max-lg:mb-0 lg:h-[100vh] lg:w-full">
+          <div className="relative z-10">
+            <Typography
+              className="text-center font-['Monument'] text-2xl font-thin text-white sm:text-3xl"
+              variant="h1"
+            >
               Rewards
             </Typography>
-            <Typography className={classes.mainDescNC} variant="body2">
+            <Typography
+              className="color-[#7e99b0] my-7 mx-auto max-w-3xl text-center text-base sm:text-lg"
+              variant="body2"
+            >
               Claim your share of rewards!
             </Typography>
             <Button
               disableElevation
-              className={classes.buttonConnect}
+              className="scale-90 rounded-3xl border border-solid border-green-300 bg-green-300 px-6 pt-3 pb-4 font-bold transition-all duration-300 hover:scale-95 hover:bg-emerald-300"
               variant="contained"
               onClick={onAddressClicked}
             >
-              {account && account.address && (
-                <div
-                  className={`${classes.accountIcon} ${classes.metamask}`}
-                ></div>
-              )}
               <Typography>Connect Wallet to Continue</Typography>
             </Button>
           </div>

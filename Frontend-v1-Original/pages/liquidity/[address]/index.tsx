@@ -1,10 +1,8 @@
 import LiquidityManage from "../../../components/ssLiquidityManage/ssLiquidityManage";
 
-import classes from "./liquidity.module.css";
-
-function Pair({ changeTheme }) {
+function Pair() {
   return (
-    <div className={classes.container}>
+    <div className="h-100 w-100 mb-16 mt-0 flex flex-col pt-28 sm:pt-36 lg:pt-14">
       <LiquidityManage />
     </div>
   );
