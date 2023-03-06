@@ -3970,74 +3970,10 @@ class Store {
       });
 
       let amountOuts = [];
-      // FIXME we should have tryAggregate here so to filter not existing routes instead of this hardcore
+      // In case router multicall will break make sure you have stable pair with some $$ in it
       if (includesRouteAddress.length === 0) {
         amountOuts = routeAssets
           .map((routeAsset) => {
-            if (routeAsset.symbol === "WCANTO") {
-              return [
-                // {
-                //   routes: [
-                //     {
-                //       from: addy0,
-                //       to: routeAsset.address,
-                //       stable: true,
-                //     },
-                //     {
-                //       from: routeAsset.address,
-                //       to: addy1,
-                //       stable: true,
-                //     },
-                //   ],
-                //   routeAsset: routeAsset,
-                // },
-                {
-                  routes: [
-                    {
-                      from: addy0,
-                      to: routeAsset.address,
-                      stable: false,
-                    },
-                    {
-                      from: routeAsset.address,
-                      to: addy1,
-                      stable: false,
-                    },
-                  ],
-                  routeAsset: routeAsset,
-                },
-                {
-                  routes: [
-                    {
-                      from: addy0,
-                      to: routeAsset.address,
-                      stable: true,
-                    },
-                    {
-                      from: routeAsset.address,
-                      to: addy1,
-                      stable: false,
-                    },
-                  ],
-                  routeAsset: routeAsset,
-                },
-                {
-                  routes: [
-                    {
-                      from: addy0,
-                      to: routeAsset.address,
-                      stable: false,
-                    },
-                    {
-                      from: routeAsset.address,
-                      to: addy1,
-                      stable: true,
-                    },
-                  ],
-                  routeAsset: routeAsset,
-                },
-              ];
-            }
             return [
               {
                 routes: [
