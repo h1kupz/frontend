@@ -136,7 +136,6 @@ interface TestnetContracts extends GeneralContracts {
   WETH_SYMBOL: string;
   WETH_DECIMALS: number;
   WETH_ABI: any[];
-  WETH_IMPL_ABI: any[];
   ETH_ADDRESS: string;
   ETH_NAME: string;
   ETH_SYMBOL: string;
@@ -152,7 +151,6 @@ interface CantoContracts extends GeneralContracts {
   WCANTO_SYMBOL: string;
   WCANTO_DECIMALS: number;
   WCANTO_ABI: any[];
-  WCANTO_IMPL_ABI: any[];
   CANTO_ADDRESS: string;
   CANTO_NAME: string;
   CANTO_SYMBOL: string;
@@ -165,7 +163,6 @@ interface ArbitrumContracts extends GeneralContracts {
   WETH_SYMBOL: string;
   WETH_DECIMALS: number;
   WETH_ABI: any[];
-  WETH_IMPL_ABI: any[];
   ETH_ADDRESS: string;
   ETH_NAME: string;
   ETH_SYMBOL: string;

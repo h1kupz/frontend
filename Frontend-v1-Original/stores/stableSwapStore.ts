@@ -151,6 +151,11 @@ class Store {
             this.swap(payload);
             break;
 
+          // WRAP / UNWRAP:
+          case ACTIONS.WRAP_UNWRAP:
+            this.wrapOrUnwrap(payload);
+            break;
+
           // REDEEM
           case ACTIONS.REDEEM:
             this.redeem(payload);
@@ -4325,10 +4330,118 @@ class Store {
           }
 
           this._getSpecificAssetInfo(web3, account, fromAsset.address);
-          this._getSpecificAssetInfo(web3, account, toAsset.address);
+          this._getSpecificAssetInfo(web3, account, toAsset.address); // TODO use this
           this._getPairInfo(web3, account);
 
           this.emitter.emit(ACTIONS.SWAP_RETURNED);
+        },
+        sendValue
+      );
+    } catch (ex) {
+      console.error(ex);
+      this.emitter.emit(ACTIONS.ERROR, ex);
+    }
+  };
+
+  wrapOrUnwrap = async (payload) => {
+    try {
+      const context = this;
+
+      const account = stores.accountStore.getStore("account");
+      if (!account) {
+        console.warn("account not found");
+        return null;
+      }
+
+      const web3 = await stores.accountStore.getWeb3Provider();
+      if (!web3) {
+        console.warn("web3 not found");
+        return null;
+      }
+
+      const { fromAsset, toAsset, fromAmount } = payload.content;
+
+      // ADD TRNASCTIONS TO TRANSACTION QUEUE DISPLAY
+      let wrapUnwrapTXID = this.getTXUUID();
+      let isWrap;
+      let tx;
+      if (fromAsset.symbol === "WCANTO" && toAsset.symbol === "CANTO") {
+        isWrap = false;
+        tx = {
+          title: `Unwrap WCANTO for CANTO`,
+          type: "Unwrap",
+          verb: "Unwrap Successful",
+          transactions: [
+            {
+              uuid: wrapUnwrapTXID,
+              description: `Unwrap ${formatCurrency(
+                fromAmount
+              )} WCANTO for CANTO`,
+              status: "WAITING",
+            },
+          ],
+        };
+      } else if (fromAsset.symbol === "CANTO" && toAsset.symbol === "WCANTO") {
+        isWrap = true;
+        tx = {
+          title: `Wrap CANTO for WCANTO`,
+          type: "Wrap",
+          verb: "Wrap Successful",
+          transactions: [
+            {
+              uuid: wrapUnwrapTXID,
+              description: `Wrap ${formatCurrency(
+                fromAmount
+              )} CANTO for WCANTO`,
+              status: "WAITING",
+            },
+          ],
+        };
+      } else {
+        throw new Error("Wrap Unwrap assets are wrong");
+      }
+
+      this.emitter.emit(ACTIONS.TX_ADDED, tx);
+
+      // SUBMIT WRAP_UNWRAP TRANSACTION
+      const sendFromAmount = BigNumber(fromAmount)
+        .times(10 ** 18)
+        .toFixed(0);
+
+      const wethContract = new web3.eth.Contract(
+        (CONTRACTS as CantoContracts).WCANTO_ABI as AbiItem[],
+        W_NATIVE_ADDRESS
+      );
+
+      let func = "withdraw";
+      let params = [sendFromAmount];
+      let sendValue = null;
+
+      if (isWrap) {
+        func = "deposit";
+        params = [];
+        sendValue = sendFromAmount;
+      }
+
+      this._callContractWait(
+        web3,
+        wethContract,
+        func,
+        params,
+        account,
+        undefined,
+        null,
+        null,
+        wrapUnwrapTXID,
+        (err) => {
+          if (err) {
+            return this.emitter.emit(ACTIONS.ERROR, err);
+          }
+
+          this._getSpecificAssetInfo(web3, account, fromAsset.address);
+          this._getSpecificAssetInfo(web3, account, toAsset.address);
+
+          this.emitter.emit(ACTIONS.WRAP_UNWRAP_RETURNED);
         },
         sendValue
       );

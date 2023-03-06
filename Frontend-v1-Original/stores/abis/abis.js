@@ -10,7 +10,6 @@ import { tokenABI } from "./tokenABI";
 import { veDistABI } from "./veDistABI";
 import { minterABI } from "./minterABI";
 import { wethABI } from "./wethABI";
-import { wethImplABI } from "./wethImplABI";
 import { flowConvertorABI } from "./flowConvertorABI";
 
 export default {
@@ -26,6 +25,5 @@ export default {
   tokenABI,
   minterABI,
   wethABI,
-  wethImplABI,
   flowConvertorABI,
 };

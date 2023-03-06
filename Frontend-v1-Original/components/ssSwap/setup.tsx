@@ -61,6 +61,12 @@ function Setup() {
 
   const [tokenPrices, setTokenPrices] = useState<Map<string, number>>();
 
+  const isWrapUnwrap =
+    (fromAssetValue?.symbol === "WCANTO" && toAssetValue?.symbol === "CANTO") ||
+    (fromAssetValue?.symbol === "CANTO" && toAssetValue?.symbol === "WCANTO")
+      ? true
+      : false;
+
   const usdDiff = useMemo(() => {
     if (
       fromAmountValueUsd &&
@@ -188,6 +194,7 @@ function Setup() {
       stores.emitter.on(ACTIONS.SWAP_RETURNED, swapReturned);
       stores.emitter.on(ACTIONS.QUOTE_SWAP_RETURNED, quoteReturned);
       stores.emitter.on(ACTIONS.BASE_ASSETS_UPDATED, assetsUpdated);
+      stores.emitter.on(ACTIONS.WRAP_UNWRAP_RETURNED, swapReturned);
 
       ssUpdated();
 
@@ -195,6 +202,10 @@ function Setup() {
         stores.emitter.removeListener(ACTIONS.ERROR, errorReturned);
         stores.emitter.removeListener(ACTIONS.UPDATED, ssUpdated);
         stores.emitter.removeListener(ACTIONS.SWAP_RETURNED, swapReturned);
+        stores.emitter.removeListener(
+          ACTIONS.WRAP_UNWRAP_RETURNED,
+          swapReturned
+        );
         stores.emitter.removeListener(
           ACTIONS.QUOTE_SWAP_RETURNED,
           quoteReturned
@@ -269,17 +280,6 @@ function Setup() {
     to: BaseAsset
   ) => {
     if (
-      (from.symbol === "WCANTO" && to.symbol === "CANTO") ||
-      (from.symbol === "CANTO" && to.symbol === "WCANTO")
-    ) {
-      setQuoteLoading(false);
-      setQuote(null);
-      setToAmountValue(amount);
-      setToAmountValueUsd("");
-      setQuoteError("No support for wrapping/unwrapping WCANTO yet");
-      return;
-    }
-    if (
       amount !== "" &&
       !isNaN(+amount) &&
       to != null &&
@@ -287,6 +287,12 @@ function Setup() {
     ) {
       setQuoteLoading(true);
       setQuoteError(false);
+
+      if (isWrapUnwrap) {
+        setQuoteLoading(false);
+        setToAmountValue(amount);
+        return;
+      }
 
       stores.dispatcher.dispatch({
         type: ACTIONS.QUOTE_SWAP,
@@ -351,6 +357,60 @@ function Setup() {
           toAmount: toAmountValue,
           quote: quote,
           slippage: slippage,
+        },
+      });
+    }
+  };
+
+  const onWrapUnwrap = () => {
+    setFromAmountError(false);
+    setFromAssetError(false);
+    setToAssetError(false);
+
+    let error = false;
+
+    if (!fromAmountValue || fromAmountValue === "" || isNaN(+fromAmountValue)) {
+      setFromAmountError("From amount is required");
+      error = true;
+    } else {
+      if (
+        !fromAssetValue.balance ||
+        isNaN(+fromAssetValue.balance) || // TODO probably dont neet it
+        BigNumber(fromAssetValue.balance).lte(0)
+      ) {
+        setFromAmountError("Invalid balance");
+        error = true;
+      } else if (BigNumber(fromAmountValue).lt(0)) {
+        setFromAmountError("Invalid amount");
+        error = true;
+      } else if (
+        fromAssetValue &&
+        BigNumber(fromAmountValue).gt(fromAssetValue.balance)
+      ) {
+        setFromAmountError(`Greater than your available balance`);
+        error = true;
+      }
+    }
+
+    if (!fromAssetValue || fromAssetValue === null) {
+      setFromAssetError("From asset is required");
+      error = true;
+    }
+
+    if (!toAssetValue || toAssetValue === null) {
+      setFromAssetError("To asset is required");
+      error = true;
+    }
+
+    if (!error) {
+      setLoading(true);
+
+      stores.dispatcher.dispatch({
+        type: ACTIONS.WRAP_UNWRAP,
+        content: {
+          fromAsset: fromAssetValue,
+          toAsset: toAssetValue,
+          fromAmount: fromAmountValue,
         },
       });
     }
@@ -534,11 +594,12 @@ function Setup() {
           <TextField
             placeholder="0.00"
             fullWidth
-            error={amountError}
+            error={!!amountError}
             helperText={amountError}
             value={amountValue}
             onChange={amountChanged}
             disabled={loading}
+            autoComplete="off"
             InputProps={{
               className: classes.smallInput,
               endAdornment: <InputAdornment position="end">%</InputAdornment>,
@@ -611,10 +672,11 @@ function Setup() {
             <TextField
               placeholder="0.00"
               fullWidth
-              error={amountError}
+              error={!!amountError}
               helperText={amountError}
               value={amountValue}
               onChange={amountChanged}
+              autoComplete="off"
               disabled={loading || type === "To"}
               InputProps={{
                 className: classes.largeInput,
@@ -667,11 +729,11 @@ function Setup() {
           size="large"
           color="primary"
           className={classes.buttonOverride}
-          disabled={loading || quoteLoading || !quote}
-          onClick={onSwap}
+          disabled={loading || quoteLoading || (!quote && !isWrapUnwrap)}
+          onClick={!isWrapUnwrap ? onSwap : onWrapUnwrap}
         >
           <Typography className={classes.actionButtonText}>
-            {loading ? `Swapping` : `Swap`}
+            {loading ? `Loading` : isWrapUnwrap ? `Wrap/Unwrap` : `Swap`}
           </Typography>
           {loading && (
             <CircularProgress size={10} className={classes.loadingCircle} />

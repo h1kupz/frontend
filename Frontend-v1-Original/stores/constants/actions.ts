@@ -84,10 +84,8 @@ export const SWAP_RETURNED = "SWAP_RETURNED";
 export const QUOTE_SWAP = "QUOTE_SWAP";
 export const QUOTE_SWAP_RETURNED = "QUOTE_SWAP_RETURNED";
 
-export const WRAP = "WRAP";
-export const UNWRAP = "UNWRAP";
-export const WRAP_RETURNED = "WRAP_RETURNED";
-export const UNWRAP_RETURNED = "UNWRAP_RETURNED";
+export const WRAP_UNWRAP = "WRAP_UNWRAP";
+export const WRAP_UNWRAP_RETURNED = "WRAP_UNWRAP_RETURNED";
 
 //VESTING
 export const GET_VEST_NFTS = "GET_VEST_NFTS";

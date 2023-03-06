@@ -25,7 +25,6 @@ export const WCANTO_NAME = "wCANTO";
 export const WCANTO_SYMBOL = "WCANTO";
 export const WCANTO_DECIMALS = 18;
 export const WCANTO_ABI = abis.wethABI;
-export const WCANTO_IMPL_ABI = abis.wethImplABI;
 
 export const CANTO_ADDRESS = "CANTO";
 export const CANTO_NAME = "CANTO";

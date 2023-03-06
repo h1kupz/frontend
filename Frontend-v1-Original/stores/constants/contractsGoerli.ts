@@ -21,7 +21,6 @@ export const WETH_NAME = "WRAPPED ETH";
 export const WETH_SYMBOL = "WETH";
 export const WETH_DECIMALS = 18;
 export const WETH_ABI = abis.wftmABI;
-export const WETH_IMPL_ABI = abis.wethImplABI;
 
 // there is something wrong with this Wrapped ETH its not working idk why
 
