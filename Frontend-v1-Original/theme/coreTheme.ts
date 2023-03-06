@@ -1,6 +1,4 @@
-import { NoEncryption } from "@mui/icons-material";
 import { createTheme } from "@mui/material/styles";
-import { shadows } from "@mui/system";
 
 export const colors = {
   blue: "#9D7ADB",
