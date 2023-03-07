@@ -10,6 +10,9 @@ module.exports = {
   ],
   theme: {
     extend: {
+      screens: {
+        xs: "576px",
+      },
       backgroundImage: {
         homePage: 'url("/images/s.png")',
       },
