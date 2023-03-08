@@ -20,7 +20,7 @@ export const WETH_ADDRESS = "0xcda739d69067333974cd73a722ab92e5e0ad8a4f"; // fak
 export const WETH_NAME = "WRAPPED ETH";
 export const WETH_SYMBOL = "WETH";
 export const WETH_DECIMALS = 18;
-export const WETH_ABI = abis.wftmABI;
+export const WETH_ABI = abis.wethABI;
 
 // there is something wrong with this Wrapped ETH its not working idk why
 

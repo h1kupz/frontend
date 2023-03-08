@@ -47,6 +47,19 @@ interface Bribe {
 
 type BribeEarned = { earned: string };
 
+interface AmountOut {
+  routes: {
+    from: string;
+    to: string;
+    stable: boolean;
+  }[];
+  routeAsset: null | RouteAsset;
+  receiveAmounts?: string[];
+  finalValue?: string;
+}
+
+type AmountsOut = AmountOut[];
+
 interface Pair {
   tvl: number;
   apr: number;
@@ -271,4 +284,6 @@ export type {
   DexScrennerPair,
   DefiLlamaTokenPrice,
   ITransaction,
+  AmountOut,
+  AmountsOut,
 };

@@ -93,7 +93,7 @@ class Store {
     // this.getGasPrices();
     injected.isAuthorized().then((isAuthorized) => {
       const { supportedChainIds } = injected;
-
+      if (!supportedChainIds) return;
       // fall back to canto mainnet if chainId undefined
       const { chainId = process.env.NEXT_PUBLIC_CHAINID } =
         (window as EthWindow).ethereum || {};
@@ -151,7 +151,7 @@ class Store {
     const that = this;
     const res = (window as EthWindow).ethereum.on(
       "accountsChanged",
-      function (accounts) {
+      function (accounts: string[]) {
         that.setStore({
           account: { address: accounts[0] },
           web3context: {
@@ -168,16 +168,19 @@ class Store {
       }
     );
 
-    (window as EthWindow).ethereum.on("chainChanged", function (chainId) {
-      const supportedChainIds = [process.env.NEXT_PUBLIC_CHAINID];
-      const parsedChainId = parseInt(chainId + "", 16) + "";
-      const isChainSupported = supportedChainIds.includes(parsedChainId);
-      that.setStore({ chainInvalid: !isChainSupported });
-      that.emitter.emit(ACTIONS.ACCOUNT_CHANGED);
-      that.emitter.emit(ACTIONS.ACCOUNT_CONFIGURED);
+    (window as EthWindow).ethereum.on(
+      "chainChanged",
+      function (chainId: string) {
+        const supportedChainIds = [process.env.NEXT_PUBLIC_CHAINID];
+        const parsedChainId = parseInt(chainId + "", 16) + "";
+        const isChainSupported = supportedChainIds.includes(parsedChainId);
+        that.setStore({ chainInvalid: !isChainSupported });
+        that.emitter.emit(ACTIONS.ACCOUNT_CHANGED);
+        that.emitter.emit(ACTIONS.ACCOUNT_CONFIGURED);
 
-      that.configure();
-    });
+        that.configure();
+      }
+    );
   };
 
   // getGasPrices = async (payload) => {
@@ -212,9 +215,10 @@ class Store {
   /**
    * @returns gas price in gwei
    */
-  getGasPrice = async (): Promise<string | null> => {
+  getGasPrice = async () => {
     try {
       const web3 = await this.getWeb3Provider();
+      if (!web3) throw new Error("web3 not available");
       const gasPrice = await web3.eth.getGasPrice();
       const gasPriceInGwei = web3.utils.fromWei(gasPrice, "gwei");
       return gasPriceInGwei;
@@ -242,6 +246,7 @@ class Store {
 
   getMulticall = async () => {
     const web3 = await this.getWeb3Provider();
+    if (!web3) return;
     const multicall = new Multicall({
       multicallAddress: CONTRACTS.MULTICALL_ADDRESS,
       provider: web3.currentProvider,
@@ -262,6 +267,7 @@ class Store {
 
   getGasPriceEIP1559 = async () => {
     const web3 = await this.getWeb3Provider();
+    if (!web3) return;
     const blocksBack = 10;
     const feeHistory = await web3.eth.getFeeHistory(blocksBack, "pending", [
       10,

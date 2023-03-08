@@ -79,6 +79,7 @@ class Helper {
   getActivePeriod = async () => {
     try {
       const web3 = await stores.accountStore.getWeb3Provider();
+      if (!web3) return 0;
       const minterContract = new web3.eth.Contract(
         CONTRACTS.MINTER_ABI as AbiItem[],
         CONTRACTS.MINTER_ADDRESS
@@ -95,7 +96,7 @@ class Helper {
 
   updateTokenPrice = async (token: TokenForPrice) => {
     if (this.tokenPricesMap.has(token.address.toLowerCase())) {
-      return this.tokenPricesMap.get(token.address.toLowerCase());
+      return this.tokenPricesMap.get(token.address.toLowerCase()) as number; // b/c we check in if statement
     }
 
     const price = await this._getTokenPrice(token);
@@ -105,7 +106,7 @@ class Helper {
 
   getCirculatingSupply = async () => {
     const web3 = await stores.accountStore.getWeb3Provider();
-    if (!web3) return;
+    if (!web3) return 0;
 
     const flowContract = new web3.eth.Contract(
       CONTRACTS.GOV_TOKEN_ABI,
@@ -271,6 +272,10 @@ class Helper {
     const price = sortedPairs.filter(
       (pair) => pair.baseToken.symbol === token.symbol
     )[0]?.priceUsd;
+
+    if (!price) {
+      return 0;
+    }
 
     return parseFloat(price);
   };
