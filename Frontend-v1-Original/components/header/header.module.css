@@ -2,29 +2,22 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
   padding: 20px 30px;
   min-height: 60px;
   position: fixed;
   top: 0;
   left: 0;
   z-index: 9 !important;
-  width: calc(100%);
+  width: 100%;
   border: 0;
   border-radius: 0 !important;
-  /* box-shadow: 0 0 0.2em rgba(30, 131, 126, 0.993); */
+  transition: 0.3s linear;
 }
 
 html:not([data-scroll="0"]) .headerContainer {
-  position: fixed;
-  top: 0;
-  flex-direction: row;
-  align-items: center;
-  /* background-color: #fff; */
   opacity: 0.9;
   background-color: rgba(0, 0, 0, 0.973);
   box-shadow: 0 0 0.2em rgba(14, 233, 222, 0.993);
-  transition: 0.4s linear;
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
 }

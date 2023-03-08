@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
-import { Typography, Button, Paper, SvgIcon, Grid } from "@mui/material";
+import { useState, useEffect } from "react";
+import { Typography, Button, Paper, SvgIcon } from "@mui/material";
+
 import Vesting from "../../../components/ssVest/ssVest";
+import Unlock from "../../../components/unlock/unlockModal";
 
 import stores from "../../../stores";
 import { ACTIONS } from "../../../stores/constants/constants";
-import Unlock from "../../../components/unlock/unlockModal";
 
 function BalanceIcon({ className }: { className: string }) {
   return (
@@ -173,28 +174,6 @@ function Vest() {
   const closeUnlock = () => {
     setUnlockOpen(false);
   };
-
-  const [, updateState] = useState<{}>();
-  const forceUpdate = useCallback(() => updateState({}), []);
-
-  const [govToken, setGovToken] = useState(null);
-  const [veToken, setVeToken] = useState(null);
-
-  useEffect(() => {
-    const forexUpdated = () => {
-      setGovToken(stores.stableSwapStore.getStore("govToken"));
-      setVeToken(stores.stableSwapStore.getStore("veToken"));
-      forceUpdate();
-    };
-
-    setGovToken(stores.stableSwapStore.getStore("govToken"));
-    setVeToken(stores.stableSwapStore.getStore("veToken"));
-
-    stores.emitter.on(ACTIONS.UPDATED, forexUpdated);
-    return () => {
-      stores.emitter.removeListener(ACTIONS.UPDATED, forexUpdated);
-    };
-  }, []);
 
   return (
     <div className="relative mt-0 flex h-full w-full flex-col pt-20 lg:pt-28">

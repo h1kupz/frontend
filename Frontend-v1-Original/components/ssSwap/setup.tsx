@@ -72,9 +72,12 @@ function Setup() {
       fromAmountValueUsd &&
       fromAmountValueUsd === "" &&
       toAmountValueUsd &&
-      toAmountValueUsd === "" &&
-      (parseFloat(fromAmountValueUsd) === 0 ||
-        parseFloat(toAmountValueUsd) === 0)
+      toAmountValueUsd === ""
+    )
+      return "";
+    if (
+      parseFloat(fromAmountValueUsd) === 0 ||
+      parseFloat(toAmountValueUsd) === 0
     )
       return "";
     if (parseFloat(fromAmountValueUsd) === parseFloat(toAmountValueUsd)) return;
@@ -171,11 +174,15 @@ function Setup() {
         forceUpdate();
       };
 
-      const assetsUpdated = () => {
-        const swapAssets = stores.stableSwapStore.getStore("swapAssets");
-
-        setToAssetOptions(swapAssets);
-        setFromAssetOptions(swapAssets);
+      const assetsUpdated = (payload: BaseAsset[]) => {
+        if (payload && payload.length > 0) {
+          setToAssetOptions(payload);
+          setFromAssetOptions(payload);
+        } else {
+          const swapAssets = stores.stableSwapStore.getStore("swapAssets");
+          setToAssetOptions(swapAssets);
+          setFromAssetOptions(swapAssets);
+        }
       };
 
       const swapReturned = (event) => {
@@ -193,7 +200,8 @@ function Setup() {
       stores.emitter.on(ACTIONS.UPDATED, ssUpdated);
       stores.emitter.on(ACTIONS.SWAP_RETURNED, swapReturned);
       stores.emitter.on(ACTIONS.QUOTE_SWAP_RETURNED, quoteReturned);
-      stores.emitter.on(ACTIONS.BASE_ASSETS_UPDATED, assetsUpdated);
+      stores.emitter.on(ACTIONS.SWAP_ASSETS_UPDATED, assetsUpdated);
+      // stores.emitter.on(ACTIONS.BASE_ASSETS_UPDATED, assetsUpdated);
       stores.emitter.on(ACTIONS.WRAP_UNWRAP_RETURNED, swapReturned);
 
       ssUpdated();
@@ -211,7 +219,7 @@ function Setup() {
           quoteReturned
         );
         stores.emitter.removeListener(
-          ACTIONS.BASE_ASSETS_UPDATED,
+          ACTIONS.SWAP_ASSETS_UPDATED,
           assetsUpdated
         );
       };
@@ -417,7 +425,7 @@ function Setup() {
   };
 
   const setBalance100 = () => {
-    const am = BigNumber(fromAssetValue.balance).toFixed(4);
+    const am = BigNumber(fromAssetValue.balance).toString();
     setFromAmountValue(am);
     setFromAmountValueUsd(
       (
@@ -775,10 +783,15 @@ function AssetSelect({ type, value, assetOptions, onSelect }) {
       //no options in our default list and its an address we search for the address
       if (ao.length === 0 && search && search.length === 42) {
         const baseAsset = await stores.stableSwapStore.getBaseAsset(
-          (event.target as HTMLInputElement).value,
+          search,
           true,
           true
         );
+        if (baseAsset) {
+          stores.emitter.emit(ACTIONS.WARNING, {
+            warning: "Token is not whitelisted",
+          });
+        }
       }
     }
     sync();

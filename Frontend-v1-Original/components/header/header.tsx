@@ -37,8 +37,8 @@ type EthWindow = Window &
     ethereum?: any;
   };
 
-function SiteLogo(props) {
-  const { color, className } = props;
+function SiteLogo(props: { className: string }) {
+  const { className } = props;
   return (
     <Image
       className={className}
@@ -50,9 +50,9 @@ function SiteLogo(props) {
   );
 }
 
-const { CONNECT_WALLET, ACCOUNT_CONFIGURED, ACCOUNT_CHANGED, ERROR } = ACTIONS;
+const { CONNECT_WALLET, ACCOUNT_CONFIGURED, ACCOUNT_CHANGED } = ACTIONS;
 
-function WrongNetworkIcon(props: { className?: string }) {
+function WrongNetworkIcon(props: { className: string }) {
   const { className } = props;
   return (
     <SvgIcon viewBox="0 0 64 64" strokeWidth="1" className={className}>
@@ -204,7 +204,11 @@ function Header() {
 
     // Update scroll position for first time
     storeScroll();
-  });
+
+    return () => {
+      document.removeEventListener("scroll", debounce(storeScroll));
+    };
+  }, []);
 
   useEffect(() => {
     const accountConfigure = () => {
@@ -256,18 +260,15 @@ function Header() {
   };
 
   return (
-    <div>
+    <>
       <div className={classes.headerContainer}>
         <a
           onClick={() => router.push("/home")}
-          className={classes.logoContainer}
+          className="flex cursor-pointer items-center justify-center gap-2 rounded-[40px] py-1"
         >
           <SiteLogo className={classes.appLogo} />
-          {/* <Typography className={classes.logoText}>Velocimeter</Typography> */}
         </a>
-
         <Navigation />
-
         <div
           style={{
             width: "260px",
@@ -275,14 +276,13 @@ function Header() {
             justifyContent: "flex-end",
           }}
         >
-          {process.env.NEXT_PUBLIC_CHAINID == "740" && (
+          {process.env.NEXT_PUBLIC_CHAINID === "740" && (
             <div className={classes.testnetDisclaimer}>
               <Typography className={classes.testnetDisclaimerText}>
                 Testnet
               </Typography>
             </div>
           )}
-
           {transactionQueueLength > 0 && (
             <IconButton
               className={classes.accountButton}
@@ -300,7 +300,6 @@ function Header() {
               </StyledBadge>
             </IconButton>
           )}
-
           {account && account.address ? (
             <div>
               <Button
@@ -312,15 +311,11 @@ function Header() {
                 aria-haspopup="true"
                 onClick={handleClick}
               >
-                {account && account.address && (
-                  <div
-                    className={`${classes.accountIcon} ${classes.metamask}`}
-                  ></div>
-                )}
+                <div
+                  className={`${classes.accountIcon} ${classes.metamask}`}
+                ></div>
                 <Typography className={classes.headBtnTxt}>
-                  {account && account.address
-                    ? formatAddress(account.address)
-                    : "Connect Wallet"}
+                  {formatAddress(account.address)}
                 </Typography>
                 <ArrowDropDown className={classes.ddIcon} />
               </Button>
@@ -341,18 +336,6 @@ function Header() {
                 onClose={handleClose}
                 className={classes.userMenu}
               >
-                <StyledMenuItem
-                  className={classes.hidden}
-                  onClick={() => router.push("/dashboard")}
-                >
-                  <ListItemIcon className={classes.userMenuIcon}>
-                    <DashboardOutlined fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText
-                    className={classes.userMenuText}
-                    primary="Dashboard"
-                  />
-                </StyledMenuItem>
                 <StyledMenuItem onClick={onAddressClicked}>
                   <ListItemIcon className={classes.userMenuIcon}>
                     <AccountBalanceWalletOutlined fontSize="small" />
@@ -372,15 +355,8 @@ function Header() {
               color={"primary"}
               onClick={onAddressClicked}
             >
-              {account && account.address && (
-                <div
-                  className={`${classes.accountIcon} ${classes.metamask}`}
-                ></div>
-              )}
               <Typography className={classes.headBtnTxt}>
-                {account && account.address
-                  ? formatAddress(account.address)
-                  : "Connect Wallet"}
+                Connect Wallet
               </Typography>
             </Button>
           )}
@@ -411,7 +387,7 @@ function Header() {
           </div>
         </div>
       ) : null}
-    </div>
+    </>
   );
 }
 

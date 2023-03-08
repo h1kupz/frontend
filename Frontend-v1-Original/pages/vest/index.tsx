@@ -8,7 +8,7 @@ import Unlock from "../../components/unlock/unlockModal";
 import { ACTIONS } from "../../stores/constants/constants";
 import stores from "../../stores";
 
-function Vesting({ changeTheme }) {
+function Vesting() {
   const accountStore = stores.accountStore.getStore("account");
   const router = useRouter();
   const [account, setAccount] = useState(accountStore);

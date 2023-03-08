@@ -174,6 +174,7 @@ function MySnackbar(props) {
               verticalAlign: "middle",
               maxWidth: "400px",
               overflowX: "hidden",
+              overflowY: "hidden",
             }}
           >
             <Typography

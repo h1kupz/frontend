@@ -16,7 +16,7 @@ import stores from "../stores/index";
 import { ACTIONS } from "../stores/constants/constants";
 import "../styles/global.css";
 
-console.log('<<<<<<<<<<<<< flow >>>>>>>>>>>>>')
+console.log("<<<<<<<<<<<<< flow >>>>>>>>>>>>>");
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
@@ -29,14 +29,9 @@ export default function MyApp({ Component, pageProps }: AppProps) {
     // Remove the server-side injected CSS.
     const jssStyles = document.querySelector("#jss-server-side");
     if (jssStyles) {
-      jssStyles.parentElement.removeChild(jssStyles);
+      jssStyles.parentElement?.removeChild(jssStyles);
     }
   }, []);
-
-  const changeTheme = (dark) => {
-    // setThemeConfig(dark ? darkTheme : lightTheme);
-    // localStorage.setItem('yearn.finance-dark-mode', dark ? 'dark' : 'light');
-  };
 
   const accountConfigureReturned = () => {
     setAccountConfigured(true);
@@ -45,13 +40,6 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   const stableSwapConfigureReturned = () => {
     setStableSwapConfigured(true);
   };
-
-  useEffect(function () {
-    const localStorageDarkMode = window.localStorage.getItem(
-      "yearn.finance-dark-mode"
-    );
-    changeTheme(localStorageDarkMode ? localStorageDarkMode === "dark" : false);
-  }, []);
 
   useEffect(function () {
     stores.emitter.on(ACTIONS.CONFIGURED_SS, stableSwapConfigureReturned);
@@ -94,7 +82,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
         <CssBaseline />
         {validateConfigured() && (
           <Layout>
-            <Component {...pageProps} changeTheme={changeTheme} />
+            <Component {...pageProps} />
           </Layout>
         )}
         {!validateConfigured() && <Configure {...pageProps} />}

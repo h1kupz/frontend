@@ -1,3 +1,4 @@
+import { Multicall as Multicall3 } from "ethereum-multicall";
 import Multicall from "@dopex-io/web3-multicall";
 
 import { Dispatcher } from "flux";
@@ -244,6 +245,17 @@ class Store {
     const multicall = new Multicall({
       multicallAddress: CONTRACTS.MULTICALL_ADDRESS,
       provider: web3.currentProvider,
+    });
+    return multicall;
+  };
+
+  getMulticall3 = async (tryAggregate: boolean) => {
+    const web3 = await this.getWeb3Provider();
+    const multicall = new Multicall3({
+      web3Instance: web3,
+      tryAggregate,
+      multicallCustomContractAddress:
+        "0xcA11bde05977b3631167028862bE2a173976CA11",
     });
     return multicall;
   };

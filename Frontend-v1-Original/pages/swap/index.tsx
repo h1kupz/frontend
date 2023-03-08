@@ -7,7 +7,7 @@ import Unlock from "../../components/unlock/unlockModal";
 import { ACTIONS } from "../../stores/constants/constants";
 import stores from "../../stores";
 
-function Swap({ changeTheme }) {
+function Swap() {
   const [account, setAccount] = useState(
     stores.accountStore.getStore("account")
   );

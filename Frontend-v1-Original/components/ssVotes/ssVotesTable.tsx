@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { makeStyles } from "@mui/styles";
 import {
   Skeleton,
@@ -216,16 +216,16 @@ export default function EnhancedTable({
 
   const [order, setOrder] = useState<"asc" | "desc">("desc");
   const [orderBy, setOrderBy] = useState<OrderBy>("totalVotes");
-  const [sliderValues, setSliderValues] = useState(defaultVotes);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [page, setPage] = useState(0);
-
-  useEffect(() => {
-    setSliderValues(defaultVotes);
-  }, [defaultVotes]);
+  const [disabledSort, setDisabledSort] = useState(false);
+  const votesRef = useRef(null);
 
   const onSliderChange = (event, value, asset) => {
-    let newSliderValues = [...sliderValues];
+    if (orderBy === "mvp" || orderBy === "myVotes") {
+      setDisabledSort(true);
+    }
+    let newSliderValues = [...defaultVotes];
 
     newSliderValues = newSliderValues.map((val) => {
       if (asset?.address === val.address) {
@@ -238,6 +238,11 @@ export default function EnhancedTable({
   };
 
   const handleRequestSort = (event, property) => {
+    if (disabledSort && (property === "mvp" || property === "myVotes")) {
+      return;
+    } else if (disabledSort) {
+      setDisabledSort(false);
+    }
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
@@ -319,29 +324,17 @@ export default function EnhancedTable({
 
   const emptyRows =
     rowsPerPage - Math.min(rowsPerPage, gauges.length - page * rowsPerPage);
-  const marks = [
-    {
-      value: -100,
-      label: "-100",
-    },
-    {
-      value: 0,
-      label: "0",
-    },
-    {
-      value: 100,
-      label: "100",
-    },
-  ];
 
-  const sortedGauges = useMemo(
-    () =>
-      stableSort(gauges, getComparator(order, orderBy)).slice(
-        page * rowsPerPage,
-        page * rowsPerPage + rowsPerPage
-      ),
-    [gauges, order, orderBy, page, rowsPerPage]
-  );
+  const sortedGauges = useMemo(() => {
+    if (disabledSort) {
+      return votesRef.current;
+    }
+    votesRef.current = stableSort(
+      gauges,
+      getComparator(order, orderBy, defaultVotes)
+    ).slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+    return votesRef.current;
+  }, [gauges, order, orderBy, page, rowsPerPage, defaultVotes, disabledSort]);
 
   return (
     <div className={classes.root}>
@@ -362,7 +355,7 @@ export default function EnhancedTable({
               if (!row) {
                 return null;
               }
-              let sliderValue = sliderValues.find(
+              let sliderValue = defaultVotes.find(
                 (el) => el.address === row?.address
               )?.value;
               if (sliderValue) {
@@ -574,7 +567,12 @@ export default function EnhancedTable({
   );
 }
 
-function descendingComparator(a: Pair, b: Pair, orderBy: OrderBy) {
+function descendingComparator(
+  a: Pair,
+  b: Pair,
+  orderBy: OrderBy,
+  defaultVotes?: Array<Pick<Vote, "address"> & { value: number }>
+) {
   if (!a || !b) {
     return 0;
   }
@@ -629,10 +627,16 @@ function descendingComparator(a: Pair, b: Pair, orderBy: OrderBy) {
 
     case "myVotes":
     case "mvp":
-      if (BigNumber(b?.gauge?.bribes.length).lt(a?.gauge?.bribes.length)) {
+      let sliderValue1 = defaultVotes.find(
+        (el) => el.address === a?.address
+      )?.value;
+      let sliderValue2 = defaultVotes.find(
+        (el) => el.address === b?.address
+      )?.value;
+      if (sliderValue2 < sliderValue1) {
         return -1;
       }
-      if (BigNumber(b?.gauge?.bribes.length).gt(a?.gauge?.bribes.length)) {
+      if (sliderValue2 > sliderValue1) {
         return 1;
       }
       return 0;
@@ -642,10 +646,14 @@ function descendingComparator(a: Pair, b: Pair, orderBy: OrderBy) {
   }
 }
 
-function getComparator(order: "asc" | "desc", orderBy: OrderBy) {
+function getComparator(
+  order: "asc" | "desc",
+  orderBy: OrderBy,
+  defaultVotes?: Array<Pick<Vote, "address"> & { value: number }>
+) {
   return order === "desc"
-    ? (a: Pair, b: Pair) => descendingComparator(a, b, orderBy)
-    : (a: Pair, b: Pair) => -descendingComparator(a, b, orderBy);
+    ? (a: Pair, b: Pair) => descendingComparator(a, b, orderBy, defaultVotes)
+    : (a: Pair, b: Pair) => -descendingComparator(a, b, orderBy, defaultVotes);
 }
 
 function stableSort(array: Pair[], comparator: (a: Pair, b: Pair) => number) {

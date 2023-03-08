@@ -58,11 +58,31 @@ const SnackbarController = (props) => {
       });
     };
 
+    const showWarn = ({ warning }: { warning: string }) => {
+      const snackbarObj = {
+        snackbarMessage: null,
+        snackbarType: null,
+        open: false,
+      };
+      setState(snackbarObj);
+
+      setTimeout(() => {
+        const snackbarObj = {
+          snackbarMessage: warning,
+          snackbarType: "Warning",
+          open: true,
+        };
+        setState(snackbarObj);
+      });
+    };
+
     emitter.on(ACTIONS.ERROR, showError);
     emitter.on(ACTIONS.TX_SUBMITTED, showHash);
+    emitter.on(ACTIONS.WARNING, showWarn);
     return () => {
       emitter.removeListener(ACTIONS.ERROR, showError);
       emitter.removeListener(ACTIONS.TX_SUBMITTED, showHash);
+      emitter.removeListener(ACTIONS.WARNING, showWarn);
     };
   }, []);
 
