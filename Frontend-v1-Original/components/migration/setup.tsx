@@ -146,7 +146,7 @@ function Setup() {
   };
 
   const setBalance100 = () => {
-    const am = BigNumber(fromAssetValue.balance).toFixed(4);
+    const am = BigNumber(fromAssetValue.balance).toString();
     setFromAmountValue(am);
     calculateReceiveAmount(am, fromAssetValue, toAssetValue);
   };
