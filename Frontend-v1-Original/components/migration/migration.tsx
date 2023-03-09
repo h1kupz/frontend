@@ -1,10 +1,39 @@
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Paper, Button, Typography } from "@mui/material";
+
 import Setup from "./setup";
+
+import stores from "../../stores";
+import { ACTIONS } from "../../stores/constants/constants";
 
 const v2 = process.env.NEXT_PUBLIC_V === "v2";
 
 function Migration() {
+  const [, updateState] = useState<{}>();
+  const forceUpdate = useCallback(() => updateState({}), []);
+  const [flowConvertorBalance, setFlowConvertorBalance] = useState("0");
+
+  useEffect(() => {
+    const ssUpdated = () => {
+      const flowConvertorBalance = stores.stableSwapStore.getStore(
+        "flowConvertorBalance"
+      );
+      if (flowConvertorBalance !== "0") {
+        setFlowConvertorBalance(flowConvertorBalance);
+      }
+
+      forceUpdate();
+    };
+
+    stores.emitter.on(ACTIONS.UPDATED, ssUpdated);
+
+    ssUpdated();
+
+    return () => {
+      stores.emitter.removeListener(ACTIONS.UPDATED, ssUpdated);
+    };
+  }, []);
   return (
     <div className="mt-32 flex h-full min-h-[calc(100vh-432px)] w-full flex-col items-center justify-evenly gap-8 xs:mt-32 min-[1201px]:mt-0">
       {v2 && (
@@ -26,6 +55,7 @@ function Migration() {
           </div>
           <div>MIGRATION NEEDS TO BE COMPLETED BEFORE THE NEXT EPOCH!</div>
           <div className="">Go with the FLOW 🌊.</div>
+          <div>Flow Convertor balance is {formatFinancialData(parseFloat(flowConvertorBalance))}</div>
         </div>
       )}
       <Paper
@@ -68,3 +98,16 @@ function Migration() {
 }
 
 export default Migration;
+
+function formatFinancialData(dataNumber: number) {
+  if (dataNumber < 10_000_000) {
+    return dataNumber.toLocaleString("en-US", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    });
+  } else if (dataNumber < 1_000_000_000) {
+    return (dataNumber / 1_000_000).toFixed(2) + "m";
+  } else {
+    return (dataNumber / 1_000_000_000).toFixed(2) + "b";
+  }
+}

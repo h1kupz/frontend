@@ -48,6 +48,7 @@ class Store {
     routeAssets: RouteAsset[];
     govToken: Omit<BaseAsset, "local"> & { balanceOf: string };
     v1TokenBalance: string;
+    flowConvertorBalance: string;
     veToken: VeToken;
     pairs: Pair[];
     vestNFTs: VestNFT[];
@@ -73,6 +74,7 @@ class Store {
       routeAssets: [],
       govToken: null,
       v1TokenBalance: "0",
+      flowConvertorBalance: "0",
       veToken: null,
       pairs: [],
       vestNFTs: [],
@@ -1032,6 +1034,9 @@ class Store {
         marketCap: await stores.helper.getMarketCap(), // TODO move to api
       });
       this.setStore({ v1TokenBalance: await stores.helper.getV1Balance() }); //FIXME temporary
+      this.setStore({
+        flowConvertorBalance: await stores.helper.getFlowConvertorBalance(),
+      }); //FIXME temporary
 
       this.emitter.emit(ACTIONS.UPDATED);
       this.emitter.emit(ACTIONS.CONFIGURED_SS);
@@ -4567,7 +4572,7 @@ class Store {
             "approve",
             [FLOW_CONVERTOR_ADDRESS, MAX_UINT256],
             account,
-            null,
+            undefined,
             null,
             null,
             allowanceTXID,
