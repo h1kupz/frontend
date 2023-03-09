@@ -31,6 +31,10 @@ import type {
   VestNFT,
   CantoContracts,
 } from "./types/types";
+import {
+  FLOW_CONVERTOR_ADDRESS,
+  FLOW_V1_ADDRESS,
+} from "./constants/contractsCanto";
 
 const isArbitrum = process.env.NEXT_PUBLIC_CHAINID === "42161";
 
@@ -4508,13 +4512,19 @@ class Store {
       const { fromAmount } = payload.content;
 
       // ADD TRNASCTIONS TO TRANSACTION QUEUE DISPLAY
+      let allowanceTXID = this.getTXUUID();
       let redeemTXID = this.getTXUUID();
 
       this.emitter.emit(ACTIONS.TX_ADDED, {
         title: `Redeem Flow v1 for Flow v2`,
-        type: "Redeem", // TODO not sure what type does so leaving it here if something
+        type: "Redeem",
         verb: "Redeem Successful",
         transactions: [
+          {
+            uuid: allowanceTXID,
+            description: `Checking your Flow v1 allowance`,
+            status: "WAITING",
+          },
           {
             uuid: redeemTXID,
             description: `Redeeming your Flow v1 for Flow v2`,
@@ -4522,6 +4532,60 @@ class Store {
           },
         ],
       });
+
+      let allowance = "0";
+
+      // // CHECK ALLOWANCES AND SET TX DISPLAY
+      allowance = await this._getRedeemAllowance(web3, account);
+
+      if (BigNumber(allowance).lt(fromAmount)) {
+        this.emitter.emit(ACTIONS.TX_STATUS, {
+          uuid: allowanceTXID,
+          description: `Allow the Flow Convertor to spend your Flow v1`,
+        });
+      } else {
+        this.emitter.emit(ACTIONS.TX_STATUS, {
+          uuid: allowanceTXID,
+          description: `Allowance on Flow v1 sufficient`,
+          status: "DONE",
+        });
+      }
+
+      const allowanceCallsPromises = [];
+
+      // // SUBMIT REQUIRED ALLOWANCE TRANSACTIONS
+      if (BigNumber(allowance).lt(fromAmount)) {
+        const tokenContract = new web3.eth.Contract(
+          CONTRACTS.ERC20_ABI as AbiItem[],
+          FLOW_V1_ADDRESS
+        );
+
+        const tokenPromise = new Promise<void>((resolve, reject) => {
+          this._callContractWait(
+            web3,
+            tokenContract,
+            "approve",
+            [FLOW_CONVERTOR_ADDRESS, MAX_UINT256],
+            account,
+            null,
+            null,
+            null,
+            allowanceTXID,
+            (err) => {
+              if (err) {
+                reject(err);
+                return;
+              }
+
+              resolve();
+            }
+          );
+        });
+
+        allowanceCallsPromises.push(tokenPromise);
+      }
+
+      const done = await Promise.all(allowanceCallsPromises);
 
       // SUBMIT REDEEM TRANSACTION
       const sendFromAmount = BigNumber(fromAmount)
@@ -4624,6 +4688,24 @@ class Store {
       return BigNumber(allowance)
         .div(10 ** token.decimals)
         .toFixed(token.decimals);
+    } catch (ex) {
+      console.error(ex);
+      return null;
+    }
+  };
+
+  _getRedeemAllowance = async (web3, account) => {
+    try {
+      const tokenContract = new web3.eth.Contract(
+        CONTRACTS.ERC20_ABI,
+        (CONTRACTS as CantoContracts).FLOW_V1_ADDRESS
+      );
+      const allowance = await tokenContract.methods
+        .allowance(account.address, FLOW_CONVERTOR_ADDRESS)
+        .call();
+      return BigNumber(allowance)
+        .div(10 ** 18)
+        .toFixed(18);
     } catch (ex) {
       console.error(ex);
       return null;
