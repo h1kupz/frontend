@@ -1299,7 +1299,9 @@ class Store {
           // this pair is broken
           if (
             pair.address.toLowerCase() ===
-            "0xA4Ed386124c023aCA6AA89b184F90e1375eE677c".toLowerCase()
+            "0xA4Ed386124c023aCA6AA89b184F90e1375eE677c".toLowerCase() ||
+            pair.address.toLowerCase() ===
+            "0xB7c71Ed7218fE3C889b15e0879F826a62566e831".toLowerCase()
           ) {
             pair.apr = 0;
           }
