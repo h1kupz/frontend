@@ -305,18 +305,12 @@ const EnhancedTableToolbar = (props) => {
     <Toolbar className={classes.toolbar}>
       <Grid container spacing={1}>
         <Grid lg="auto" md={12} sm={12} xs={12} item>
-          <Button
-            variant="contained"
-            color="secondary"
-            startIcon={<EnhancedEncryptionOutlined />}
-            size="large"
-            className={classes.buttonOverride}
-            onClick={onCreate}
-          >
-            <Typography className={classes.actionButtonText}>
-              Create Lock
+          <div className="flex items-center justify-center">
+            <Typography className="rounded-xl border border-cantoGreen bg-black p-5 text-sm font-normal">
+              Please DO NOT lock any more FLOWv1 into your NFTs as we have
+              already taken the Snapshot and allocated V2 veFLOW to people.
             </Typography>
-          </Button>
+          </div>
         </Grid>
         <Grid item lg={true} md={true} sm={false} xs={false}></Grid>
       </Grid>
