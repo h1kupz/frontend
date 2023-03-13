@@ -133,12 +133,17 @@ class Helper {
       .balanceOf("0xd0cC9738866cd82B237A14c92ac60577602d6c18")
       .call();
 
+    const flowInFlowConvertor = await flowContract.methods
+      .balanceOf("0x63dF314EA0912412ff1cDC5A43585477d08CE5e9") //flowconvertor address
+      .call();
+
     const circulatingSupply = BigNumber(totalSupply)
       .minus(BigNumber(lockedSupply))
       .minus(BigNumber(flowInMinter))
       .minus(BigNumber(flowInMsig))
       .minus(BigNumber(flowInRewardsDistributor))
       .minus(BigNumber(flowInTimelockerController))
+      .minus(BigNumber(flowInFlowConvertor))
       .div(10 ** NATIVE_TOKEN.decimals)
       .toNumber();
 
