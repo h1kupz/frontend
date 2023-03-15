@@ -60,8 +60,6 @@ export default function ffWarning({ close }) {
           encourage those who want to add liquidity to FLOW pairs on v2 to do
           so.
           <br />
-          5M veFLOW are being used to incentivize early migration.
-          <br />
           Shortly before epoch timer is up we will Kill all the gauges on v1
           app.{" "}
           <span className="font-semibold">
