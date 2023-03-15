@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 
+import SSWarning from "../ssWarning";
+
 import { Typography } from "@mui/material";
 import { withTheme } from "@mui/styles";
 
@@ -10,6 +12,23 @@ const migrateModeActive = process.env.NEXT_PUBLIC_MIGRATE_MODE === "true";
 function Navigation() {
   const router = useRouter();
   const [active, setActive] = useState("swap");
+
+  const [warningOpen, setWarningOpen] = useState(false);
+
+  useEffect(function () {
+    const localStorageWarningAccepted =
+      window.localStorage.getItem("migration.warning");
+    setWarningOpen(
+      localStorageWarningAccepted
+        ? localStorageWarningAccepted !== "accepted"
+        : true
+    );
+  }, []);
+
+  const closeWarning = () => {
+    window.localStorage.setItem("migration.warning", "accepted");
+    setWarningOpen(false);
+  };
 
   useEffect(() => {
     const activePath = router.asPath;
@@ -57,10 +76,6 @@ function Navigation() {
     );
   };
 
-  // .navButton {
-  //   -webkit-tap-highlight-color: transparent;
-  // }
-
   const renderSubNav = (title: string, link: string) => {
     return (
       <Link href={"/" + link}>
@@ -99,11 +114,14 @@ function Navigation() {
   };
 
   return (
-    <div className="fixed top-0 left-0 flex items-center border-0 bg-[#040105] px-4 py-0 shadow-[0_0_0.2em] shadow-cantoGreen max-lg:z-[10020] lg:relative lg:min-h-[unset] lg:rounded-xl lg:p-[10px]">
-      <div className="fixed top-11 left-0 w-full overflow-x-scroll border border-[rgba(126,153,176,0.2)] bg-[#040105] px-11 py-0 text-center xs:top-[60px] md:overflow-x-visible lg:relative lg:top-[unset] lg:left-[unset] lg:border-none lg:p-0">
-        {renderNavs()}
+    <>
+      <div className="fixed top-0 left-0 flex items-center border-0 bg-[#040105] px-4 py-0 shadow-[0_0_0.2em] shadow-cantoGreen max-lg:z-[10020] lg:relative lg:min-h-[unset] lg:rounded-xl lg:p-[10px]">
+        <div className="fixed top-11 left-0 w-full overflow-x-scroll border border-[rgba(126,153,176,0.2)] bg-[#040105] px-11 py-0 text-center xs:top-[60px] md:overflow-x-visible lg:relative lg:top-[unset] lg:left-[unset] lg:border-none lg:p-0">
+          {renderNavs()}
+        </div>
       </div>
-    </div>
+      {warningOpen && <SSWarning close={closeWarning} />}
+    </>
   );
 }
 
