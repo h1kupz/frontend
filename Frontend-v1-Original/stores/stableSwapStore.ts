@@ -5776,6 +5776,11 @@ class Store {
         CONTRACTS.VOTER_ADDRESS
       );
 
+      const bribeContract = new web3.eth.Contract(
+        CONTRACTS.BRIBE_ABI as AbiItem[],
+        pair.gauge.wrapped_bribe_address
+      );
+
       const sendGauges = [pair.gauge.wrapped_bribe_address];
       const sendTokens = [
         pair.gauge.bribesEarned.map((bribe) => {
@@ -5785,9 +5790,9 @@ class Store {
 
       this._callContractWait(
         web3,
-        gaugesContract,
-        "claimBribes",
-        [sendGauges, sendTokens, tokenID],
+        bribeContract,
+        "getReward",
+        [tokenID, sendTokens],
         account,
         gasPrice,
         null,
