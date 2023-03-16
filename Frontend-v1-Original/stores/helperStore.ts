@@ -137,6 +137,10 @@ class Helper {
       .balanceOf("0x63dF314EA0912412ff1cDC5A43585477d08CE5e9") //flowconvertor address
       .call();
 
+    const flowInVoter = await flowContract.methods
+      .balanceOf(CONTRACTS.VOTER_ADDRESS) //flowconvertor address
+      .call();
+
     const circulatingSupply = BigNumber(totalSupply)
       .minus(BigNumber(lockedSupply))
       .minus(BigNumber(flowInMinter))
@@ -144,6 +148,7 @@ class Helper {
       .minus(BigNumber(flowInRewardsDistributor))
       .minus(BigNumber(flowInTimelockerController))
       .minus(BigNumber(flowInFlowConvertor))
+      .minus(BigNumber(flowInVoter))
       .div(10 ** NATIVE_TOKEN.decimals)
       .toNumber();
 
