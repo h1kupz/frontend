@@ -1296,15 +1296,8 @@ class Store {
 
       const ps = await Promise.all(
         pairs.map(async (pair) => {
-          // this pair is broken
-          if (
-            pair.address.toLowerCase() ===
-              "0xA4Ed386124c023aCA6AA89b184F90e1375eE677c".toLowerCase() ||
-            pair.address.toLowerCase() ===
-              "0xB7c71Ed7218fE3C889b15e0879F826a62566e831".toLowerCase()
-          ) {
-            pair.apr = 0;
-          }
+          // canto v1 died
+          pair.apr = 0;
           try {
             const pairContract = new web3.eth.Contract(
               CONTRACTS.PAIR_ABI,
@@ -4699,7 +4692,9 @@ class Store {
 
   createVest = async (payload) => {
     try {
-      throw new Error('Please DO NOT lock any more FLOWv1 into your NFTs as we have already taken the Snapshot and allocated V2 veFLOW to people.');
+      throw new Error(
+        "Please DO NOT lock any more FLOWv1 into your NFTs as we have already taken the Snapshot and allocated V2 veFLOW to people."
+      );
       const account = stores.accountStore.getStore("account");
       if (!account) {
         console.warn("account not found");
@@ -4985,7 +4980,9 @@ class Store {
 
   increaseVestDuration = async (payload) => {
     try {
-      throw new Error('Please DO NOT lock any more FLOWv1 into your NFTs as we have already taken the Snapshot and allocated V2 veFLOW to people.');
+      throw new Error(
+        "Please DO NOT lock any more FLOWv1 into your NFTs as we have already taken the Snapshot and allocated V2 veFLOW to people."
+      );
       const account = stores.accountStore.getStore("account");
       if (!account) {
         console.warn("account not found");
