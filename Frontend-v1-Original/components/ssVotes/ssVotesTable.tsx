@@ -293,22 +293,30 @@ function VotesRow({
     sliderValue = 0;
   }
 
-  let rewardEstimate: number;
+  let rewardEstimateDisplay: number;
   const votesCasting = (sliderValue / 100) * parseFloat(token?.lockValue);
   if (votesCasting > 0) {
     const divideBy = token?.voted
       ? parseFloat(row?.gauge?.weight)
       : votesCasting + parseFloat(row?.gauge?.weight);
 
-    rewardEstimate =
+    const rewardEstimate =
       row.gauge?.bribesInUsd > 0 && sliderValue > 0
         ? (row.gauge?.bribesInUsd * votesCasting) / divideBy
         : 0;
+    rewardEstimateDisplay =
+      rewardEstimate > row.gauge.bribesInUsd
+        ? row.gauge.bribesInUsd
+        : rewardEstimate;
   }
   const rewardPerThousand =
     parseFloat(row?.gauge?.weight) > 0
       ? (row.gauge.bribesInUsd / parseFloat(row?.gauge?.weight)) * 1000
       : 0;
+  const rewardPerThousandDisplay =
+    rewardPerThousand > row.gauge.bribesInUsd
+      ? row.gauge.bribesInUsd
+      : rewardPerThousand;
   return useMemo(() => {
     return (
       <TableRow key={row?.gauge?.address}>
@@ -406,15 +414,10 @@ function VotesRow({
           })}
         </TableCell>
         <TableCell align="right">
-          {!rewardEstimate ? (
+          {!rewardEstimateDisplay ? (
             <>
               <Typography variant="h2" className="text-xs font-extralight">
-                $
-                {formatCurrency(
-                  rewardPerThousand > row.gauge.bribesInUsd
-                    ? row.gauge.bribesInUsd
-                    : rewardPerThousand
-                )}
+                ${formatCurrency(rewardPerThousandDisplay)}
               </Typography>
               <Typography
                 variant="h5"
@@ -426,7 +429,7 @@ function VotesRow({
             </>
           ) : (
             <Typography variant="h2" className="text-xs font-extralight">
-              ${formatCurrency(rewardEstimate)}
+              ${formatCurrency(rewardEstimateDisplay)}
             </Typography>
           )}
         </TableCell>
@@ -486,8 +489,8 @@ function descendingComparator(
       const sliderValueB = defaultVotes.find(
         (el) => el.address === b?.address
       )?.value;
-      let rewardEstimateA: number;
-      let rewardEstimateB: number;
+      let rewardEstimateDisplayA: number;
+      let rewardEstimateDisplayB: number;
 
       const votesCastingA =
         (sliderValueA / 100) * parseFloat(token?.lockValue ?? "0");
@@ -495,10 +498,14 @@ function descendingComparator(
         const divideByA = token?.voted
           ? parseFloat(a?.gauge?.weight)
           : votesCastingA + parseFloat(a?.gauge?.weight);
-        rewardEstimateA =
+        const rewardEstimateA =
           a.gauge?.bribesInUsd > 0 && sliderValueA > 0
             ? (a.gauge?.bribesInUsd * votesCastingA) / divideByA
             : 0;
+        rewardEstimateDisplayA =
+          rewardEstimateA > a.gauge.bribesInUsd
+            ? a.gauge.bribesInUsd
+            : rewardEstimateA;
       }
 
       const votesCastingB =
@@ -507,10 +514,14 @@ function descendingComparator(
         const divideByB = token?.voted
           ? parseFloat(b?.gauge?.weight)
           : votesCastingB + parseFloat(b?.gauge?.weight);
-        rewardEstimateB =
+        const rewardEstimateB =
           b.gauge?.bribesInUsd > 0 && sliderValueB > 0
             ? (b.gauge?.bribesInUsd * votesCastingB) / divideByB
             : 0;
+        rewardEstimateDisplayB =
+          rewardEstimateB > b.gauge.bribesInUsd
+            ? b.gauge.bribesInUsd
+            : rewardEstimateB;
       }
 
       const _rewardPerThousandA =
@@ -530,16 +541,16 @@ function descendingComparator(
           ? b.gauge.bribesInUsd
           : _rewardPerThousandB;
 
-      if (rewardEstimateB && rewardEstimateA) {
-        if (rewardEstimateB < rewardEstimateA) {
+      if (rewardEstimateDisplayB && rewardEstimateDisplayA) {
+        if (rewardEstimateDisplayB < rewardEstimateDisplayA) {
           return -1;
         }
-        if (rewardEstimateB > rewardEstimateA) {
+        if (rewardEstimateDisplayB > rewardEstimateDisplayA) {
           return 1;
         }
-      } else if (rewardEstimateB && !rewardEstimateA) {
+      } else if (rewardEstimateDisplayB && !rewardEstimateDisplayA) {
         return 1;
-      } else if (rewardEstimateA && !rewardEstimateB) {
+      } else if (rewardEstimateDisplayA && !rewardEstimateDisplayB) {
         return -1;
       }
       if (rewardPerThousandB < rewardPerThousandA) {
