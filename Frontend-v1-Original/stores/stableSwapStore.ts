@@ -3,14 +3,18 @@ import { v4 as uuidv4 } from "uuid";
 import type { Contract } from "web3-eth-contract";
 import type { AbiItem } from "web3-utils";
 import BigNumber from "bignumber.js";
-import Web3 from "web3";
+import type Web3 from "web3";
 import { TransactionReceipt } from "@ethersproject/providers";
 
 import { Dispatcher } from "flux";
 import EventEmitter from "events";
 
 import stores from ".";
-import { formatCurrency } from "../utils/utils";
+import {
+  formatCurrency,
+  formatMooPairSymbol,
+  formatMooTokenSymbol,
+} from "../utils/utils";
 import {
   ACTIONS,
   CONTRACTS,
@@ -1315,6 +1319,12 @@ class Store {
       const ps1 = await Promise.all(
         ps.map(async (pair) => {
           try {
+            if (pair.symbol.includes("mooCanto")) {
+              pair.symbol = formatMooPairSymbol(pair.symbol);
+              pair.token0.symbol = formatMooTokenSymbol(pair.token0.symbol);
+              pair.token1.symbol = formatMooTokenSymbol(pair.token1.symbol);
+            }
+
             if (pair.gauge && pair.gauge.address !== ZERO_ADDRESS) {
               const gaugeContract = new web3.eth.Contract(
                 CONTRACTS.GAUGE_ABI,
