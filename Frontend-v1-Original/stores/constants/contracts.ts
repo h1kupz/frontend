@@ -58,4 +58,9 @@ export const STABLE_TOKEN_ADDRESS =
 
 export const MSIG_ADDRESS = "0x13eeB8EdfF60BbCcB24Ec7Dd5668aa246525Dc51";
 
+export const VOTE_MANAGER_ADDRESS =
+  "0x5880f495cF0FAF6347354D8aCc41b49EDB51a9f7";
+export const VOTE_MANAGER_ABI = abis.voteManagerABI;
+export const VOTE_FARMER_ABI = abis.voteFarmerABI;
+
 //LFG

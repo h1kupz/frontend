@@ -21,6 +21,11 @@ export default function ssVests() {
     const ssUpdated = async () => {
       setGovToken(stores.stableSwapStore.getStore("govToken"));
       setVeToken(stores.stableSwapStore.getStore("veToken"));
+
+      const nfts = stores.stableSwapStore.getStore("vestNFTs");
+      if (JSON.stringify(nfts) !== JSON.stringify(vestNFTs)) {
+        setVestNFTs(nfts);
+      }
     };
 
     ssUpdated();

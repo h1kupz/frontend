@@ -15,6 +15,7 @@ import {
   Toolbar,
   Grid,
   Tooltip,
+  Dialog,
 } from "@mui/material";
 import { useRouter } from "next/router";
 import { EnhancedEncryptionOutlined, Check, Close } from "@mui/icons-material";
@@ -22,6 +23,9 @@ import moment from "moment";
 import BigNumber from "bignumber.js";
 
 import stores from "../../stores";
+import useVoteManagerStore, {
+  VoteManagerStore,
+} from "../../stores/voteManagerStore";
 import { formatCurrency } from "../../utils/utils";
 import { ACTIONS } from "../../stores/constants/constants";
 import { GovToken, VestNFT, VeToken } from "../../stores/types/types";
@@ -56,6 +60,10 @@ const headCells = [
 ] as const;
 
 type OrderBy = (typeof headCells)[number]["id"];
+
+const selectorDelegate = (s: VoteManagerStore) => s.delegate;
+const selectorUndelegate = (s: VoteManagerStore) => s.undelegate;
+const selectorAutolock = (s: VoteManagerStore) => s.autolock;
 
 function EnhancedTableHead({
   order,
@@ -217,16 +225,20 @@ export default function EnhancedTable({
     router.push(`/vest/${nft.id}`);
   };
 
-  const onReset = (nft: {
-    lockAmount: string;
-    lockValue: string;
-    lockEnds: string;
-    id: string;
-  }) => {
+  const onReset = (nft: VestNFT) => {
     stores.dispatcher.dispatch({
       type: ACTIONS.RESET_VEST,
       content: { tokenID: nft.id },
     });
+  };
+
+  const delegate = useVoteManagerStore(selectorDelegate);
+  const onDelegate = (nft: VestNFT) => {
+    delegate(nft.id);
+  };
+  const undelegate = useVoteManagerStore(selectorUndelegate);
+  const onUndelegate = (nft: VestNFT) => {
+    undelegate(nft.id);
   };
 
   const emptyRows =
@@ -377,6 +389,39 @@ export default function EnhancedTable({
                             Reset
                           </Button>
                         </Tooltip>
+                        {row.delegated ? (
+                          <Button
+                            variant="outlined"
+                            color="primary"
+                            onClick={() => {
+                              onUndelegate(row);
+                            }}
+                          >
+                            Undelegate
+                          </Button>
+                        ) : (
+                          <Tooltip
+                            title={
+                              <div>
+                                NFT must have minimun of 500 FLOW vested.
+                                <br />
+                                NFT must be locked for at least 7 more days.
+                              </div>
+                            }
+                            placement="right"
+                            enterTouchDelay={500}
+                          >
+                            <Button
+                              variant="outlined"
+                              color="primary"
+                              onClick={() => {
+                                onDelegate(row);
+                              }}
+                            >
+                              Delegate
+                            </Button>
+                          </Tooltip>
+                        )}
                         <Button
                           variant="outlined"
                           color="primary"

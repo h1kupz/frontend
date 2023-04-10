@@ -40,6 +40,8 @@ interface VestNFT {
   lockEnds: string;
   lockValue: string;
   voted: boolean;
+  delegated: boolean;
+  autolock: boolean;
 }
 
 interface Bribe {

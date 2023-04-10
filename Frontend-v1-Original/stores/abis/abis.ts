@@ -10,7 +10,8 @@ import { tokenABI } from "./tokenABI";
 import { veDistABI } from "./veDistABI";
 import { minterABI } from "./minterABI";
 import { wethABI } from "./wethABI";
-import { flowConvertorABI } from "./flowConvertorABI";
+import { voteManagerABI } from "./voteManagerABI";
+import { voteFarmerABI } from "./voteFarmerABI";
 
 export default {
   erc20ABI,
@@ -25,5 +26,6 @@ export default {
   tokenABI,
   minterABI,
   wethABI,
-  flowConvertorABI,
+  voteManagerABI,
+  voteFarmerABI,
 };

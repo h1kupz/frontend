@@ -266,6 +266,10 @@ class Store {
         abi: CONTRACTS.VE_TOKEN_ABI,
         address: CONTRACTS.VE_TOKEN_ADDRESS,
       } as const;
+      const voteManagerContract = {
+        abi: CONTRACTS.VOTE_MANAGER_ABI,
+        address: CONTRACTS.VOTE_MANAGER_ADDRESS,
+      } as const;
 
       const nftsLength = await viemClient.readContract({
         ...vestingContract,
@@ -284,7 +288,7 @@ class Store {
             functionName: "tokenOfOwnerByIndex",
             args: [account.address, BigInt(idx)],
           });
-          const [[lockedAmount, lockedEnd], lockValue] =
+          const [[lockedAmount, lockedEnd], lockValue, strat] =
             await viemClient.multicall({
               allowFailure: false,
               multicallAddress: CONTRACTS.MULTICALL_ADDRESS,
@@ -299,8 +303,24 @@ class Store {
                   functionName: "balanceOfNFT",
                   args: [tokenIndex],
                 },
+                {
+                  ...voteManagerContract,
+                  functionName: "tokenIdToStrat",
+                  args: [tokenIndex],
+                },
               ],
             });
+
+          let autolock = false;
+          if (strat !== ZERO_ADDRESS) {
+            const [, _autolock] = await viemClient.readContract({
+              address: strat,
+              abi: CONTRACTS.VOTE_FARMER_ABI,
+              functionName: "tokenIdToInfo",
+              args: [tokenIndex],
+            });
+            autolock = _autolock;
+          }
 
           const voted = await this._checkNFTVotedEpoch(tokenIndex.toString());
 
@@ -310,6 +330,8 @@ class Store {
             lockAmount: formatUnits(lockedAmount, govToken.decimals),
             lockValue: formatUnits(lockValue, veToken.decimals),
             voted,
+            autolock,
+            delegated: strat !== ZERO_ADDRESS,
           };
         })
       );
@@ -359,6 +381,10 @@ class Store {
         abi: CONTRACTS.VE_TOKEN_ABI,
         address: CONTRACTS.VE_TOKEN_ADDRESS,
       } as const;
+      const voteManagerContract = {
+        abi: CONTRACTS.VOTE_MANAGER_ABI,
+        address: CONTRACTS.VOTE_MANAGER_ADDRESS,
+      } as const;
 
       const tokenIndex = await viemClient.readContract({
         ...vestingContract,
@@ -366,8 +392,8 @@ class Store {
         args: [account.address, BigInt(id)],
       });
 
-      const [[lockedAmount, lockedEnd], lockValue] = await viemClient.multicall(
-        {
+      const [[lockedAmount, lockedEnd], lockValue, strat] =
+        await viemClient.multicall({
           allowFailure: false,
           multicallAddress: CONTRACTS.MULTICALL_ADDRESS,
           contracts: [
@@ -381,9 +407,24 @@ class Store {
               functionName: "balanceOfNFT",
               args: [tokenIndex],
             },
+            {
+              ...voteManagerContract,
+              functionName: "tokenIdToStrat",
+              args: [tokenIndex],
+            },
           ],
-        }
-      );
+        });
+
+      let autolock = false;
+      if (strat !== ZERO_ADDRESS) {
+        const [, _autolock] = await viemClient.readContract({
+          address: strat,
+          abi: CONTRACTS.VOTE_FARMER_ABI,
+          functionName: "tokenIdToInfo",
+          args: [tokenIndex],
+        });
+        autolock = _autolock;
+      }
 
       const voted = await this._checkNFTVotedEpoch(id);
 
@@ -395,6 +436,8 @@ class Store {
             lockAmount: formatUnits(lockedAmount, govToken.decimals),
             lockValue: formatUnits(lockValue, veToken.decimals),
             voted,
+            autolock,
+            delegated: strat !== ZERO_ADDRESS,
           };
         }
 
@@ -1363,6 +1406,10 @@ class Store {
         abi: CONTRACTS.VE_TOKEN_ABI,
         address: CONTRACTS.VE_TOKEN_ADDRESS,
       } as const;
+      const voteManagerContract = {
+        abi: CONTRACTS.VOTE_MANAGER_ABI,
+        address: CONTRACTS.VOTE_MANAGER_ADDRESS,
+      } as const;
 
       const nftsLength = await viemClient.readContract({
         ...vestingContract,
@@ -1382,7 +1429,7 @@ class Store {
             functionName: "tokenOfOwnerByIndex",
             args: [account.address, BigInt(idx)],
           });
-          const [[lockedAmount, lockedEnd], lockValue] =
+          const [[lockedAmount, lockedEnd], lockValue, strat] =
             await viemClient.multicall({
               allowFailure: false,
               multicallAddress: CONTRACTS.MULTICALL_ADDRESS,
@@ -1397,8 +1444,24 @@ class Store {
                   functionName: "balanceOfNFT",
                   args: [tokenIndex],
                 },
+                {
+                  ...voteManagerContract,
+                  functionName: "tokenIdToStrat",
+                  args: [tokenIndex],
+                },
               ],
             });
+
+          let autolock = false;
+          if (strat !== ZERO_ADDRESS) {
+            const [, _autolock] = await viemClient.readContract({
+              address: strat,
+              abi: CONTRACTS.VOTE_FARMER_ABI,
+              functionName: "tokenIdToInfo",
+              args: [tokenIndex],
+            });
+            autolock = _autolock;
+          }
 
           const voted = await this._checkNFTVotedEpoch(tokenIndex.toString());
 
@@ -1409,6 +1472,8 @@ class Store {
             lockAmount: formatUnits(lockedAmount, govToken.decimals),
             lockValue: formatUnits(lockValue, veToken.decimals),
             voted,
+            autolock,
+            delegated: strat !== ZERO_ADDRESS,
           };
         })
       );
@@ -4425,6 +4490,10 @@ class Store {
         abi: CONTRACTS.VE_TOKEN_ABI,
         address: CONTRACTS.VE_TOKEN_ADDRESS,
       } as const;
+      const voteManagerContract = {
+        abi: CONTRACTS.VOTE_MANAGER_ABI,
+        address: CONTRACTS.VOTE_MANAGER_ADDRESS,
+      } as const;
 
       const nftsLength = await viemClient.readContract({
         ...vestingContract,
@@ -4437,7 +4506,7 @@ class Store {
         (v, i) => i
       );
 
-      const nfts = await Promise.all(
+      const nfts: VestNFT[] = await Promise.all(
         arr.map(async (idx) => {
           const tokenIndex = await viemClient.readContract({
             ...vestingContract,
@@ -4445,7 +4514,7 @@ class Store {
             args: [account.address, BigInt(idx)],
           });
 
-          const [[lockedAmount, lockedEnd], lockValue] =
+          const [[lockedAmount, lockedEnd], lockValue, strat] =
             await viemClient.multicall({
               allowFailure: false,
               multicallAddress: CONTRACTS.MULTICALL_ADDRESS,
@@ -4460,8 +4529,24 @@ class Store {
                   functionName: "balanceOfNFT",
                   args: [tokenIndex],
                 },
+                {
+                  ...voteManagerContract,
+                  functionName: "tokenIdToStrat",
+                  args: [tokenIndex],
+                },
               ],
             });
+
+          let autolock = false;
+          if (strat !== ZERO_ADDRESS) {
+            const [, _autolock] = await viemClient.readContract({
+              address: strat,
+              abi: CONTRACTS.VOTE_FARMER_ABI,
+              functionName: "tokenIdToInfo",
+              args: [tokenIndex],
+            });
+            autolock = _autolock;
+          }
 
           const voted = await this._checkNFTVotedEpoch(tokenIndex.toString());
 
@@ -4472,6 +4557,8 @@ class Store {
             lockAmount: formatUnits(lockedAmount, govToken.decimals),
             lockValue: formatUnits(lockValue, veToken.decimals),
             voted,
+            autolock,
+            delegated: strat !== ZERO_ADDRESS,
           };
         })
       );
