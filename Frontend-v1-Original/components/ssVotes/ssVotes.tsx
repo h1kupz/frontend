@@ -38,6 +38,8 @@ const initialEmptyToken = {
   lockEnds: "0",
   lockValue: "0",
   voted: false,
+  autolock: false,
+  delegated: false,
 };
 
 export default function ssVotes() {
