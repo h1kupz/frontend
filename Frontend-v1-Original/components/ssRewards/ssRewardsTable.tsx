@@ -126,7 +126,7 @@ export default function EnhancedTable({
     setOrderBy(property);
   };
 
-  if (rewards.length === 0 || !rewards) {
+  if (!rewards) {
     return (
       <div className="w-full">
         <Skeleton

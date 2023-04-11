@@ -45,6 +45,9 @@ module.exports = {
       colors: {
         cantoGreen: "#06fc99",
       },
+      boxShadow: {
+        glow: "0 0 10px 0 #06fc99",
+      }
     },
   },
   plugins: [],

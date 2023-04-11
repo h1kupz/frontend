@@ -792,7 +792,7 @@ function Setup() {
             onSlippageChanged
           )}
         </div>
-        <div className="mb-1 flex items-center justify-end">
+        <div className="mb-4 flex items-center justify-end space-x-2">
           <button onClick={updateQuote}>
             <UpdateOutlined className="fill-gray-300 transition-all hover:scale-105 hover:fill-cantoGreen" />
           </button>

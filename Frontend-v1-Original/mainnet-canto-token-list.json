@@ -350,5 +350,21 @@
     "logoURI": "https://assets.coingecko.com/coins/images/22568/small/cropped-FINALwithbrick-2-1-1.png?1642060468",
     "name": "CRE8R",
     "symbol": "CRE8R"
+  },
+  {
+    "address": "0xbDdCf6AB290E7Ad076CA103183730d1Bf0661112",
+    "chainId": 7700,
+    "decimals": 18,
+    "logoURI": "https://raw.githubusercontent.com/openXswap/openXswap-misc/master/img/opxveFLOW.png",
+    "name": "Perpetually Bonded Flow",
+    "symbol": "opxveFLOW"
+  },
+  {
+    "address": "0x53a5dD07127739e5038cE81eff24ec503A6CC479",
+    "chainId": 7700,
+    "decimals": 18,
+    "logoURI": "https://cre8r.vip/wp-content/uploads/2023/04/IMG_20230411_173159_601.png",
+    "name": "ACryptoS Liquid Wrapped veFLOW",
+    "symbol": "acsFLOW"
   }
 ]
