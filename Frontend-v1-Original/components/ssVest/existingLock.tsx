@@ -37,6 +37,8 @@ export default function existingLock({
         lockValue: nft.lockValue,
         lockEnds: nft.lockEnds,
         voted: false,
+        delegated: false,
+        autolock: false,
       };
 
       setFutureNFT(tmpNFT);
@@ -49,6 +51,8 @@ export default function existingLock({
       lockValue: nft.lockValue,
       lockEnds: nft.lockEnds,
       voted: false,
+      delegated: false,
+      autolock: false,
     };
 
     const now = moment();
@@ -71,6 +75,8 @@ export default function existingLock({
       lockValue: nft.lockValue,
       lockEnds: nft.lockEnds,
       voted: false,
+      delegated: false,
+      autolock: false,
     };
 
     const now = moment();

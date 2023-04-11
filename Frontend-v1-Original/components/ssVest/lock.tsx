@@ -281,6 +281,8 @@ export default function ssLock({
         .toFixed(18),
       lockEnds: expiry.unix().toString(),
       voted: false,
+      delegated: false,
+      autolock: false,
     };
 
     return (
