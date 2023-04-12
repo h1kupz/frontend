@@ -1577,7 +1577,13 @@ class Store {
         try {
           if (hasGauge(pair)) {
             const isAliveGauge = gaugesAliveData[outerIndex];
-
+            console.log(
+              pair.symbol,
+              "<<",
+              isAliveGauge,
+              "<<",
+              pair.gauge.address
+            );
             const [totalSupply, gaugeBalance, gaugeWeight] = gaugesData.slice(
               outerIndex * 3,
               outerIndex * 3 + 3
