@@ -13,8 +13,6 @@ export type VoteManagerStore = {
   autolock: (tokenID: string, enable: boolean) => Promise<void>;
   _getNFTAllowance: (address: `0x${string}`) => Promise<boolean | null>;
   _getTXUUID: () => string;
-  getAPR: () => Promise<number>;
-  getAPROfNFT: (tokenID?: string) => Promise<number>;
 };
 
 const useVoteManagerStore = create<VoteManagerStore>((set, get) => ({
@@ -360,56 +358,6 @@ const useVoteManagerStore = create<VoteManagerStore>((set, get) => ({
   },
   _getTXUUID: () => {
     return uuidv4();
-  },
-  getAPR: async () => {
-    try {
-      const voteManagerContract = {
-        abi: CONTRACTS.VOTE_MANAGER_ABI,
-        address: CONTRACTS.VOTE_MANAGER_ADDRESS,
-      } as const;
-
-      const apr = await viemClient.readContract({
-        ...voteManagerContract,
-        functionName: "averageAPRAcrossLastNHarvests",
-        args: [BigInt(2)],
-      });
-
-      return Number(apr);
-    } catch (e) {
-      console.error(e);
-      return 0;
-    }
-  },
-  getAPROfNFT: async (tokenID) => {
-    try {
-      if (!tokenID) return 0;
-      const voteManagerContract = {
-        abi: CONTRACTS.VOTE_MANAGER_ABI,
-        address: CONTRACTS.VOTE_MANAGER_ADDRESS,
-      } as const;
-
-      const strat = await viemClient.readContract({
-        ...voteManagerContract,
-        functionName: "tokenIdToStrat",
-        args: [BigInt(tokenID)],
-      });
-
-      let apr = 0;
-      if (strat !== ZERO_ADDRESS) {
-        const aprBigInt = await viemClient.readContract({
-          address: strat,
-          abi: CONTRACTS.VOTE_FARMER_ABI,
-          functionName: "averageAPRAcrossLastNHarvests",
-          args: [BigInt(2)],
-        });
-        apr = Number(aprBigInt);
-      }
-
-      return apr;
-    } catch (e) {
-      console.error(e);
-      return 0;
-    }
   },
 }));
 

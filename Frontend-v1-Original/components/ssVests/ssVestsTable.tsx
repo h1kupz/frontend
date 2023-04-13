@@ -21,7 +21,11 @@ import { useRouter } from "next/router";
 import { EnhancedEncryptionOutlined, Check, Close } from "@mui/icons-material";
 import moment from "moment";
 import BigNumber from "bignumber.js";
-import { useQuery } from "react-query";
+
+import {
+  useAverageNftDelegationAPR,
+  useAverageStrategiesDelegationAPR,
+} from "./queries";
 
 import stores from "../../stores";
 import useVoteManagerStore from "../../stores/voteManagerStore";
@@ -479,23 +483,13 @@ function VoteManagerDialog({
   nft?: VestNFT;
 }) {
   const [enableAutolock, setEnableAutolock] = useState(true);
-  const { delegate, undelegate, getAPR, getAPROfNFT } = useVoteManagerStore();
+  const { delegate, undelegate } = useVoteManagerStore();
 
-  const { isFetching: isFetchingAPR, data: apr } = useQuery({
-    queryKey: ["vote manager", "apr", "all strats"],
-    queryFn: () => getAPR(),
-    enabled: !!nft && !nft.delegated,
-    initialData: 0,
-    staleTime: 1000 * 60,
-  });
+  const { isFetching: isFetchingAPR, data: apr } =
+    useAverageStrategiesDelegationAPR(nft);
 
-  const { isFetching: isFetchingAPROfNft, data: aprOfNft } = useQuery({
-    queryKey: ["vote manager", "apr", nft?.id],
-    queryFn: () => getAPROfNFT(nft?.id),
-    enabled: !!nft && nft.delegated,
-    initialData: 0,
-    staleTime: 1000 * 60,
-  });
+  const { isFetching: isFetchingAPROfNft, data: aprOfNft } =
+    useAverageNftDelegationAPR(nft);
 
   if (!nft) {
     return null;
