@@ -562,7 +562,9 @@ function VoteManagerDialog({
                           : "bg-transparent"
                       }`}
                     />
-                    <div>enable autolock</div>
+                    <div>
+                      autolock {enableAutolock ? "enabled" : "disabled"}
+                    </div>
                   </div>
                 </Tooltip>
                 <button
