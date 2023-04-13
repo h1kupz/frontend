@@ -397,7 +397,9 @@ export default function ssVotes() {
             variant="contained"
             size="large"
             color="primary"
-            disabled={voteLoading || !BigNumber(totalVotes).eq(100)}
+            disabled={
+              voteLoading || !BigNumber(totalVotes).eq(100) || token.delegated
+            }
             onClick={onVote}
           >
             <Typography className={classes.actionButtonText}>

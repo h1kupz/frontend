@@ -21,11 +21,10 @@ import { useRouter } from "next/router";
 import { EnhancedEncryptionOutlined, Check, Close } from "@mui/icons-material";
 import moment from "moment";
 import BigNumber from "bignumber.js";
+import { useQuery } from "react-query";
 
 import stores from "../../stores";
-import useVoteManagerStore, {
-  VoteManagerStore,
-} from "../../stores/voteManagerStore";
+import useVoteManagerStore from "../../stores/voteManagerStore";
 import { formatCurrency } from "../../utils/utils";
 import { ACTIONS } from "../../stores/constants/constants";
 import { GovToken, VestNFT, VeToken } from "../../stores/types/types";
@@ -60,10 +59,6 @@ const headCells = [
 ] as const;
 
 type OrderBy = (typeof headCells)[number]["id"];
-
-const selectorDelegate = (s: VoteManagerStore) => s.delegate;
-const selectorUndelegate = (s: VoteManagerStore) => s.undelegate;
-const selectorAutolock = (s: VoteManagerStore) => s.autolock;
 
 function EnhancedTableHead({
   order,
@@ -154,6 +149,8 @@ export default function EnhancedTable({
   const [orderBy, setOrderBy] = React.useState<OrderBy>("Lock Value");
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [page, setPage] = useState(0);
+  const [voteManagerOpen, setVoteManagerOpen] = useState(false);
+  const [selectedNft, setSelectedNft] = useState<VestNFT>();
 
   const handleChangePage = (
     event: React.MouseEvent<HTMLButtonElement, MouseEvent> | null,
@@ -232,180 +229,146 @@ export default function EnhancedTable({
     });
   };
 
-  const delegate = useVoteManagerStore(selectorDelegate);
-  const onDelegate = (nft: VestNFT) => {
-    delegate(nft.id);
+  const onVoteManagerDialogClose = () => {
+    setVoteManagerOpen(false);
+    setSelectedNft(undefined);
   };
-  const undelegate = useVoteManagerStore(selectorUndelegate);
-  const onUndelegate = (nft: VestNFT) => {
-    undelegate(nft.id);
-  };
+
+  const { autolock } = useVoteManagerStore();
 
   const emptyRows =
     rowsPerPage - Math.min(rowsPerPage, vestNFTs.length - page * rowsPerPage);
 
   return (
-    <div className="w-full">
-      <EnhancedTableToolbar />
-      <Paper
-        elevation={0}
-        className="flex w-full flex-col items-end border border-[rgba(104,108,122,0.25)]"
-      >
-        <TableContainer>
-          <Table
-            aria-labelledby="tableTitle"
-            size={"medium"}
-            aria-label="enhanced table"
-          >
-            <EnhancedTableHead
-              order={order}
-              orderBy={orderBy}
-              onRequestSort={handleRequestSort}
-            />
-            <TableBody>
-              {stableSort(vestNFTs, getComparator(order, orderBy))
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((row, index) => {
-                  if (!row) {
-                    return null;
-                  }
-                  const labelId = `enhanced-table-checkbox-${index}`;
+    <>
+      <div className="w-full">
+        <EnhancedTableToolbar />
+        <Paper
+          elevation={0}
+          className="flex w-full flex-col items-end border border-[rgba(104,108,122,0.25)]"
+        >
+          <TableContainer>
+            <Table
+              aria-labelledby="tableTitle"
+              size={"medium"}
+              aria-label="enhanced table"
+            >
+              <EnhancedTableHead
+                order={order}
+                orderBy={orderBy}
+                onRequestSort={handleRequestSort}
+              />
+              <TableBody>
+                {stableSort(vestNFTs, getComparator(order, orderBy))
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((row, index) => {
+                    if (!row) {
+                      return null;
+                    }
+                    const labelId = `enhanced-table-checkbox-${index}`;
 
-                  return (
-                    <TableRow
-                      key={labelId}
-                      className="hover:bg-[rgba(104,108,122,0.05)]"
-                    >
-                      <TableCell>
-                        <div className="flex items-center">
-                          <div className="relative flex h-9 w-[70px]">
-                            <img
-                              className="absolute left-0 top-0 rounded-[30px]"
-                              src={govToken?.logoURI || undefined}
-                              width="35"
-                              height="35"
-                              alt=""
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).onerror = null;
-                                (e.target as HTMLImageElement).src =
-                                  "/tokens/unknown-logo.png";
-                              }}
-                            />
-                          </div>
-                          <div>
-                            <Typography
-                              variant="h2"
-                              className="text-xs font-extralight"
-                            >
-                              {row.id}
-                            </Typography>
-                            <Typography
-                              variant="h5"
-                              className="text-xs font-extralight"
-                              color="textSecondary"
-                            >
-                              NFT ID
-                            </Typography>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Typography
-                          variant="h2"
-                          className="text-xs font-extralight"
-                        >
-                          {!!row.voted ? (
-                            <Check className="fill-green-500" />
-                          ) : (
-                            <Close className="fill-red-500" />
-                          )}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Typography
-                          variant="h2"
-                          className="text-xs font-extralight"
-                        >
-                          {formatCurrency(row.lockAmount)}
-                        </Typography>
-                        <Typography
-                          variant="h5"
-                          className="text-xs font-extralight"
-                          color="textSecondary"
-                        >
-                          {govToken?.symbol}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Typography
-                          variant="h2"
-                          className="text-xs font-extralight"
-                        >
-                          {formatCurrency(row.lockValue)}
-                        </Typography>
-                        <Typography
-                          variant="h5"
-                          className="text-xs font-extralight"
-                          color="textSecondary"
-                        >
-                          {veToken?.symbol}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Typography
-                          variant="h2"
-                          className="text-xs font-extralight"
-                        >
-                          {moment.unix(+row.lockEnds).format("YYYY-MM-DD")}
-                        </Typography>
-                        <Typography
-                          variant="h5"
-                          className="text-xs font-extralight"
-                          color="textSecondary"
-                        >
-                          Expires {moment.unix(+row.lockEnds).fromNow()}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Tooltip
-                          title={
-                            <div>
-                              Only reset it if you want to do NFT merge.
-                              <br />
-                              Reset disables voting until next epoch.
+                    return (
+                      <TableRow
+                        key={labelId}
+                        className="hover:bg-[rgba(104,108,122,0.05)]"
+                      >
+                        <TableCell>
+                          <div className="flex items-center">
+                            <div className="relative flex h-9 w-[70px]">
+                              <img
+                                className="absolute left-0 top-0 rounded-[30px]"
+                                src={govToken?.logoURI || undefined}
+                                width="35"
+                                height="35"
+                                alt=""
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).onerror = null;
+                                  (e.target as HTMLImageElement).src =
+                                    "/tokens/unknown-logo.png";
+                                }}
+                              />
                             </div>
-                          }
-                          placement="right"
-                          enterTouchDelay={500}
-                        >
-                          <Button
-                            variant="outlined"
-                            color="primary"
-                            onClick={() => {
-                              onReset(row);
-                            }}
-                            className="mr-2"
+                            <div>
+                              <Typography
+                                variant="h2"
+                                className="text-xs font-extralight"
+                              >
+                                {row.id}
+                              </Typography>
+                              <Typography
+                                variant="h5"
+                                className="text-xs font-extralight"
+                                color="textSecondary"
+                              >
+                                NFT ID
+                              </Typography>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Typography
+                            variant="h2"
+                            className="text-xs font-extralight"
                           >
-                            Reset
-                          </Button>
-                        </Tooltip>
-                        {row.delegated ? (
-                          <Button
-                            variant="outlined"
-                            color="primary"
-                            onClick={() => {
-                              onUndelegate(row);
-                            }}
+                            {!!row.voted ? (
+                              <Check className="fill-green-500" />
+                            ) : (
+                              <Close className="fill-red-500" />
+                            )}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography
+                            variant="h2"
+                            className="text-xs font-extralight"
                           >
-                            Undelegate
-                          </Button>
-                        ) : (
+                            {formatCurrency(row.lockAmount)}
+                          </Typography>
+                          <Typography
+                            variant="h5"
+                            className="text-xs font-extralight"
+                            color="textSecondary"
+                          >
+                            {govToken?.symbol}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography
+                            variant="h2"
+                            className="text-xs font-extralight"
+                          >
+                            {formatCurrency(row.lockValue)}
+                          </Typography>
+                          <Typography
+                            variant="h5"
+                            className="text-xs font-extralight"
+                            color="textSecondary"
+                          >
+                            {veToken?.symbol}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography
+                            variant="h2"
+                            className="text-xs font-extralight"
+                          >
+                            {moment.unix(+row.lockEnds).format("YYYY-MM-DD")}
+                          </Typography>
+                          <Typography
+                            variant="h5"
+                            className="text-xs font-extralight"
+                            color="textSecondary"
+                          >
+                            Expires {moment.unix(+row.lockEnds).fromNow()}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="right">
                           <Tooltip
                             title={
                               <div>
-                                NFT must have minimun of 500 FLOW vested.
+                                Only reset it if you want to do NFT merge.
                                 <br />
-                                NFT must be locked for at least 7 more days.
+                                Reset disables voting until next epoch.
                               </div>
                             }
                             placement="right"
@@ -415,40 +378,211 @@ export default function EnhancedTable({
                               variant="outlined"
                               color="primary"
                               onClick={() => {
-                                onDelegate(row);
+                                onReset(row);
+                              }}
+                              className="mr-2"
+                              disabled={row.delegated}
+                              sx={{
+                                "&.MuiButton-root.Mui-disabled": {
+                                  color: "gray",
+                                  borderColor: "gray",
+                                },
                               }}
                             >
-                              Delegate
+                              Reset
                             </Button>
                           </Tooltip>
-                        )}
-                        <Button
-                          variant="outlined"
-                          color="primary"
-                          onClick={() => {
-                            onView(row);
-                          }}
-                        >
-                          Manage
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={vestNFTs.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      </Paper>
-    </div>
+                          {row.delegated && row.autolock ? (
+                            <Button
+                              variant="outlined"
+                              color="primary"
+                              onClick={() => {
+                                autolock(row.id, false);
+                              }}
+                              className="mr-2"
+                            >
+                              Disable autolock
+                            </Button>
+                          ) : row.delegated && !row.autolock ? (
+                            <Button
+                              variant="outlined"
+                              color="primary"
+                              onClick={() => {
+                                autolock(row.id, true);
+                              }}
+                              className="mr-2"
+                            >
+                              Enable autolock
+                            </Button>
+                          ) : null}
+                          <Button
+                            variant="outlined"
+                            color="primary"
+                            onClick={() => {
+                              setSelectedNft(row);
+                              setVoteManagerOpen(true);
+                            }}
+                            className="mr-2"
+                          >
+                            {row.delegated ? "Undelegate" : "Delegate"}
+                          </Button>
+                          <Button
+                            variant="outlined"
+                            color="primary"
+                            onClick={() => {
+                              onView(row);
+                            }}
+                            disabled={row.delegated}
+                            sx={{
+                              "&.MuiButton-root.Mui-disabled": {
+                                color: "gray",
+                                borderColor: "gray",
+                              },
+                            }}
+                          >
+                            Manage
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={vestNFTs.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </Paper>
+      </div>
+      <VoteManagerDialog
+        open={voteManagerOpen}
+        onClose={onVoteManagerDialogClose}
+        nft={selectedNft}
+      />
+    </>
+  );
+}
+
+function VoteManagerDialog({
+  open,
+  onClose,
+  nft,
+}: {
+  open: boolean;
+  onClose: () => void;
+  nft?: VestNFT;
+}) {
+  const [enableAutolock, setEnableAutolock] = useState(true);
+  const { delegate, undelegate, getAPR, getAPROfNFT } = useVoteManagerStore();
+
+  const { isFetching: isFetchingAPR, data: apr } = useQuery({
+    queryKey: ["vote manager", "apr", "all strats"],
+    queryFn: () => getAPR(),
+    enabled: !!nft && !nft.delegated,
+    initialData: 0,
+    staleTime: 1000 * 60,
+  });
+
+  const { isFetching: isFetchingAPROfNft, data: aprOfNft } = useQuery({
+    queryKey: ["vote manager", "apr", nft?.id],
+    queryFn: () => getAPROfNFT(nft?.id),
+    enabled: !!nft && nft.delegated,
+    initialData: 0,
+    staleTime: 1000 * 60,
+  });
+
+  if (!nft) {
+    return null;
+  }
+
+  const internalOnClose = () => {
+    setEnableAutolock(true);
+    onClose();
+  };
+
+  return (
+    <Dialog
+      aria-labelledby="vote-manager-modal"
+      open={open}
+      onClose={internalOnClose}
+      sx={{ "& .MuiDialog-paper": { all: "unset" } }}
+    >
+      <div className="w-96 max-w-md rounded-md bg-[#040105] p-5 shadow-glow">
+        {nft.delegated ? (
+          <>
+            <div className="text-lg font-semibold">Undelegate NFT#{nft.id}</div>
+            <div
+              className={`font-sono text-lg ${
+                isFetchingAPROfNft ? "animate-pulse" : ""
+              }`}
+            >
+              NFT APR is {aprOfNft} %
+            </div>
+            <div className="flex items-end justify-end">
+              <button
+                onClick={() => undelegate(nft.id)}
+                className="border border-cantoGreen px-2 py-2 text-center text-sm font-medium text-cantoGreen transition-all duration-300 hover:bg-green-900 focus:outline-none focus:ring-4 focus:ring-green-200"
+              >
+                Undelegate
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="text-lg font-semibold">Delegate NFT#{nft.id}</div>
+            <div
+              className={`font-sono text-lg ${
+                isFetchingAPR ? "animate-pulse" : ""
+              }`}
+            >
+              Average APR is {apr} %
+            </div>
+            <div className="flex flex-col gap-3">
+              <div className="text-sm text-slate-300">
+                <div>To Delegate:</div>
+                <ul>
+                  <li>-NFT must have minimun of 500 FLOW vested</li>
+                  <li>-NFT must be locked for at least 7 more days</li>
+                </ul>
+              </div>
+              <div className="flex items-end justify-between">
+                <Tooltip
+                  title="Autolock extends your veFLOW lock duration by 1 week every week to maintain
+                your voting power"
+                  placement="left"
+                >
+                  <div
+                    className="flex max-w-fit cursor-pointer items-center gap-1 text-sm"
+                    onClick={() => setEnableAutolock((prev) => !prev)}
+                  >
+                    <div
+                      className={`h-4 w-4 outline outline-1 outline-cantoGreen transition-colors ${
+                        enableAutolock
+                          ? "bg-cantoGreen outline-offset-1"
+                          : "bg-transparent"
+                      }`}
+                    />
+                    <div>enable autolock</div>
+                  </div>
+                </Tooltip>
+                <button
+                  onClick={() => delegate(nft.id, enableAutolock)}
+                  className="border border-cantoGreen px-2 py-2 text-center text-sm font-medium text-cantoGreen transition-colors hover:bg-green-900 focus:outline-none focus:ring-4 focus:ring-green-200"
+                >
+                  Delegate
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </Dialog>
   );
 }
 

@@ -4,19 +4,21 @@ import type { AbiItem } from "web3-utils";
 
 import viemClient from "./connectors/viem";
 
-import { ACTIONS, CONTRACTS } from "./constants/constants";
+import { ACTIONS, CONTRACTS, ZERO_ADDRESS } from "./constants/constants";
 import stores from ".";
 
 export type VoteManagerStore = {
-  delegate: (tokenID: string) => Promise<void>;
+  delegate: (tokenID: string, autolock?: boolean) => Promise<void>;
   undelegate: (tokenID: string) => Promise<void>;
   autolock: (tokenID: string, enable: boolean) => Promise<void>;
   _getNFTAllowance: (address: `0x${string}`) => Promise<boolean | null>;
   _getTXUUID: () => string;
+  getAPR: () => Promise<number>;
+  getAPROfNFT: (tokenID?: string) => Promise<number>;
 };
 
 const useVoteManagerStore = create<VoteManagerStore>((set, get) => ({
-  delegate: async (tokenID: string, autolock?: boolean) => {
+  delegate: async (tokenID, autolock) => {
     try {
       if (!tokenID || tokenID === "0") {
         throw new Error("Invalid token ID");
@@ -164,7 +166,7 @@ const useVoteManagerStore = create<VoteManagerStore>((set, get) => ({
       stores.emitter.emit(ACTIONS.ERROR, e);
     }
   },
-  undelegate: async (tokenID: string) => {
+  undelegate: async (tokenID) => {
     try {
       if (!tokenID || tokenID === "0") {
         throw new Error("Invalid token ID");
@@ -278,7 +280,7 @@ const useVoteManagerStore = create<VoteManagerStore>((set, get) => ({
       stores.emitter.emit(ACTIONS.ERROR, e);
     }
   },
-  autolock: async (tokenID: string, enable: boolean) => {
+  autolock: async (tokenID, enable) => {
     try {
       if (!tokenID || tokenID === "0") {
         throw new Error("Invalid token ID");
@@ -337,7 +339,7 @@ const useVoteManagerStore = create<VoteManagerStore>((set, get) => ({
       stores.emitter.emit(ACTIONS.ERROR, e);
     }
   },
-  _getNFTAllowance: async (address: `0x${string}`) => {
+  _getNFTAllowance: async (address) => {
     try {
       const votingContract = {
         address: CONTRACTS.VE_TOKEN_ADDRESS,
@@ -358,6 +360,56 @@ const useVoteManagerStore = create<VoteManagerStore>((set, get) => ({
   },
   _getTXUUID: () => {
     return uuidv4();
+  },
+  getAPR: async () => {
+    try {
+      const voteManagerContract = {
+        abi: CONTRACTS.VOTE_MANAGER_ABI,
+        address: CONTRACTS.VOTE_MANAGER_ADDRESS,
+      } as const;
+
+      const apr = await viemClient.readContract({
+        ...voteManagerContract,
+        functionName: "averageAPRAcrossLastNHarvests",
+        args: [BigInt(2)],
+      });
+
+      return Number(apr);
+    } catch (e) {
+      console.error(e);
+      return 0;
+    }
+  },
+  getAPROfNFT: async (tokenID) => {
+    try {
+      if (!tokenID) return 0;
+      const voteManagerContract = {
+        abi: CONTRACTS.VOTE_MANAGER_ABI,
+        address: CONTRACTS.VOTE_MANAGER_ADDRESS,
+      } as const;
+
+      const strat = await viemClient.readContract({
+        ...voteManagerContract,
+        functionName: "tokenIdToStrat",
+        args: [BigInt(tokenID)],
+      });
+
+      let apr = 0;
+      if (strat !== ZERO_ADDRESS) {
+        const aprBigInt = await viemClient.readContract({
+          address: strat,
+          abi: CONTRACTS.VOTE_FARMER_ABI,
+          functionName: "averageAPRAcrossLastNHarvests",
+          args: [BigInt(2)],
+        });
+        apr = Number(aprBigInt);
+      }
+
+      return apr;
+    } catch (e) {
+      console.error(e);
+      return 0;
+    }
   },
 }));
 

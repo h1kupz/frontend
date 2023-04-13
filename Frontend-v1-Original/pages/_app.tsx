@@ -4,6 +4,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { CacheProvider, EmotionCache } from "@emotion/react";
 import { ThemeProvider } from "@mui/material/styles";
+import { QueryClient, QueryClientProvider } from "react-query";
 
 import lightTheme from "../theme/light";
 import darkTheme from "../theme/dark";
@@ -26,6 +27,8 @@ export interface MyAppProps extends AppProps {
 }
 
 console.log("<<<<<<<<<<<<< flow >>>>>>>>>>>>>");
+
+const queryClient = new QueryClient();
 
 export default function MyApp({
   Component,
@@ -75,9 +78,11 @@ export default function MyApp({
       </Head>
       <ThemeProvider theme={themeConfig}>
         {accountConfigured ? (
-          <Layout>
-            <Component {...pageProps} />
-          </Layout>
+          <QueryClientProvider client={queryClient}>
+            <Layout>
+              <Component {...pageProps} />
+            </Layout>
+          </QueryClientProvider>
         ) : (
           <Configure {...pageProps} />
         )}
