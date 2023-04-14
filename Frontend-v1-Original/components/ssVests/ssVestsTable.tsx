@@ -542,7 +542,7 @@ function VoteManagerDialog({
               <div className="text-sm text-slate-300">
                 <div>To Delegate:</div>
                 <ul>
-                  <li>-NFT must have minimun of 500 FLOW vested</li>
+                  <li>-NFT must have minimum of 500 FLOW vested</li>
                   <li>-NFT must be locked for at least 7 more days</li>
                 </ul>
               </div>
