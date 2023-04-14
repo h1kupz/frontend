@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Typography } from "@mui/material";
 
-import classes from "./ssVests.module.css";
-
 import VestsTable from "./ssVestsTable";
+import PartnersVests from "./partnersVests";
 
 import stores from "../../stores";
 import { ACTIONS } from "../../stores/constants/constants";
@@ -65,8 +64,8 @@ export default function ssVests() {
   }, []);
 
   return (
-    <div className={classes.container}>
-      <div className={classes.descriptionBox}>
+    <div className="m-auto mb-5 flex w-[calc(100%-40px)] max-w-[1400px] flex-col items-end p-0 pt-20 pb-2 xl:mb-14 xl:w-[calc(100%-180px)] xl:pt-0">
+      <div className="flex flex-col gap-1 self-start text-left">
         <Typography variant="h1">Vest</Typography>
         <Typography variant="body2">
           Lock FLOW into veFLOW to earn and govern. Vote with veFLOW to earn
@@ -75,6 +74,7 @@ export default function ssVests() {
         </Typography>
       </div>
       <VestsTable vestNFTs={vestNFTs} govToken={govToken} veToken={veToken} />
+      <PartnersVests />
     </div>
   );
 }

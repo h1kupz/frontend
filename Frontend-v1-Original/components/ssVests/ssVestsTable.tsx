@@ -378,23 +378,25 @@ export default function EnhancedTable({
                             placement="right"
                             enterTouchDelay={500}
                           >
-                            <Button
-                              variant="outlined"
-                              color="primary"
-                              onClick={() => {
-                                onReset(row);
-                              }}
-                              className="mr-2"
-                              disabled={row.delegated}
-                              sx={{
-                                "&.MuiButton-root.Mui-disabled": {
-                                  color: "gray",
-                                  borderColor: "gray",
-                                },
-                              }}
-                            >
-                              Reset
-                            </Button>
+                            <span>
+                              <Button
+                                variant="outlined"
+                                color="primary"
+                                onClick={() => {
+                                  onReset(row);
+                                }}
+                                className="mr-2"
+                                disabled={row.delegated}
+                                sx={{
+                                  "&.MuiButton-root.Mui-disabled": {
+                                    color: "gray",
+                                    borderColor: "gray",
+                                  },
+                                }}
+                              >
+                                Reset
+                              </Button>
+                            </span>
                           </Tooltip>
                           {row.delegated && row.autolock ? (
                             <Button
@@ -436,7 +438,6 @@ export default function EnhancedTable({
                             onClick={() => {
                               onView(row);
                             }}
-                            disabled={row.delegated}
                             sx={{
                               "&.MuiButton-root.Mui-disabled": {
                                 color: "gray",
@@ -554,6 +555,13 @@ function VoteManagerDialog({
                   <div
                     className="flex max-w-fit cursor-pointer items-center gap-1 text-sm"
                     onClick={() => setEnableAutolock((prev) => !prev)}
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        setEnableAutolock((prev) => !prev);
+                      }
+                    }}
                   >
                     <div
                       className={`h-4 w-4 outline outline-1 outline-cantoGreen transition-colors ${
