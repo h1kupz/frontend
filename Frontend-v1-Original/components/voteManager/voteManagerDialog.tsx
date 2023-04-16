@@ -65,7 +65,9 @@ function VoteManagerDialog({
             >
               NFT APR is {aprOfNft} %
             </div>
-            <div>Revoke your voting power from Velocimeter.</div>
+            <div className="mb-4 text-sm">
+              Revoke your voting power from Velocimeter.
+            </div>
             <div className="flex flex-col gap-3">
               <div className="text-sm text-slate-300">
                 <div>When you undelegate:</div>
@@ -96,7 +98,7 @@ function VoteManagerDialog({
             >
               Average APR is {apr} %
             </div>
-            <div>
+            <div className="mb-4 text-sm">
               Grant Velocimeter your voting power to be used to collect bribes
               and auto compound into more veFLOW.
             </div>
@@ -130,7 +132,7 @@ function VoteManagerDialog({
                     }}
                   >
                     <div
-                      className={`h-4 w-4 outline outline-1 outline-cantoGreen transition-colors ${
+                      className={`mr-2 h-4 w-4 outline outline-1 outline-cantoGreen transition-colors ${
                         enableAutolock
                           ? "bg-cantoGreen outline-offset-1"
                           : "bg-transparent"
