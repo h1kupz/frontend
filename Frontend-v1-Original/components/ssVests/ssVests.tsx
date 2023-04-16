@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useEffect } from "react";
 import { Typography } from "@mui/material";
 
 import VestsTable from "./ssVestsTable";
@@ -6,56 +6,21 @@ import PartnersVests from "./partnersVests";
 
 import stores from "../../stores";
 import { ACTIONS } from "../../stores/constants/constants";
-import { GovToken, VestNFT, VeToken } from "../../stores/types/types";
+import { useVestNfts, useGovToken, useVeToken } from "./queries";
 
 export default function ssVests() {
-  const [, updateState] = useState<{}>();
-  const forceUpdate = useCallback(() => updateState({}), []);
+  const { data: govToken } = useGovToken();
+  const { data: veToken } = useVeToken();
 
-  const [vestNFTs, setVestNFTs] = useState<VestNFT[]>([]);
-  const [govToken, setGovToken] = useState<GovToken | null>(null);
-  const [veToken, setVeToken] = useState<VeToken | null>(null);
+  const { data: vestNFTs, refetch: refetchVestNfts } = useVestNfts();
 
   useEffect(() => {
-    const ssUpdated = async () => {
-      setGovToken(stores.stableSwapStore.getStore("govToken"));
-      setVeToken(stores.stableSwapStore.getStore("veToken"));
-
-      const nfts = stores.stableSwapStore.getStore("vestNFTs");
-      if (JSON.stringify(nfts) !== JSON.stringify(vestNFTs)) {
-        setVestNFTs(nfts);
-      }
-    };
-
-    ssUpdated();
-
-    stores.emitter.on(ACTIONS.UPDATED, ssUpdated);
-    return () => {
-      stores.emitter.removeListener(ACTIONS.UPDATED, ssUpdated);
-    };
-  }, []);
-
-  useEffect(() => {
-    const vestNFTsReturned = (nfts: VestNFT[]) => {
-      setVestNFTs(nfts);
-      forceUpdate();
-    };
-
-    window.setTimeout(() => {
-      stores.dispatcher.dispatch({ type: ACTIONS.GET_VEST_NFTS, content: {} });
-    }, 1);
-
     const resetVestReturned = () => {
-      stores.dispatcher.dispatch({ type: ACTIONS.GET_VEST_NFTS, content: {} });
+      refetchVestNfts();
     };
 
-    stores.emitter.on(ACTIONS.VEST_NFTS_RETURNED, vestNFTsReturned);
     stores.emitter.on(ACTIONS.RESET_VEST_RETURNED, resetVestReturned);
     return () => {
-      stores.emitter.removeListener(
-        ACTIONS.VEST_NFTS_RETURNED,
-        vestNFTsReturned
-      );
       stores.emitter.removeListener(
         ACTIONS.RESET_VEST_RETURNED,
         resetVestReturned

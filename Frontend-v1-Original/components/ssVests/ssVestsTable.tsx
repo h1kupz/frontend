@@ -15,20 +15,16 @@ import {
   Toolbar,
   Grid,
   Tooltip,
-  Dialog,
 } from "@mui/material";
 import { useRouter } from "next/router";
 import { EnhancedEncryptionOutlined, Check, Close } from "@mui/icons-material";
 import moment from "moment";
 import BigNumber from "bignumber.js";
 
-import {
-  useAverageNftDelegationAPR,
-  useAverageStrategiesDelegationAPR,
-} from "./queries";
+import VoteManagerDialog from "../voteManager/voteManagerDialog";
 
+import { useAutolock } from "../voteManager/queries";
 import stores from "../../stores";
-import useVoteManagerStore from "../../stores/voteManagerStore";
 import { formatCurrency } from "../../utils/utils";
 import { ACTIONS } from "../../stores/constants/constants";
 import { GovToken, VestNFT, VeToken } from "../../stores/types/types";
@@ -143,9 +139,9 @@ export default function EnhancedTable({
   govToken,
   veToken,
 }: {
-  vestNFTs: VestNFT[];
-  govToken: GovToken | null;
-  veToken: VeToken | null;
+  vestNFTs: VestNFT[] | undefined;
+  govToken: GovToken | null | undefined;
+  veToken: VeToken | null | undefined;
 }) {
   const router = useRouter();
 
@@ -155,6 +151,8 @@ export default function EnhancedTable({
   const [page, setPage] = useState(0);
   const [voteManagerOpen, setVoteManagerOpen] = useState(false);
   const [selectedNft, setSelectedNft] = useState<VestNFT>();
+
+  const { mutate: autolock } = useAutolock();
 
   const handleChangePage = (
     event: React.MouseEvent<HTMLButtonElement, MouseEvent> | null,
@@ -237,8 +235,6 @@ export default function EnhancedTable({
     setVoteManagerOpen(false);
     setSelectedNft(undefined);
   };
-
-  const { autolock } = useVoteManagerStore();
 
   const emptyRows =
     rowsPerPage - Math.min(rowsPerPage, vestNFTs.length - page * rowsPerPage);
@@ -403,7 +399,7 @@ export default function EnhancedTable({
                               variant="outlined"
                               color="primary"
                               onClick={() => {
-                                autolock(row.id, false);
+                                autolock({ tokenID: row.id, enable: false });
                               }}
                               className="mr-2"
                             >
@@ -414,7 +410,7 @@ export default function EnhancedTable({
                               variant="outlined"
                               color="primary"
                               onClick={() => {
-                                autolock(row.id, true);
+                                autolock({ tokenID: row.id, enable: true });
                               }}
                               className="mr-2"
                             >
@@ -471,122 +467,6 @@ export default function EnhancedTable({
         nft={selectedNft}
       />
     </>
-  );
-}
-
-function VoteManagerDialog({
-  open,
-  onClose,
-  nft,
-}: {
-  open: boolean;
-  onClose: () => void;
-  nft?: VestNFT;
-}) {
-  const [enableAutolock, setEnableAutolock] = useState(true);
-  const { delegate, undelegate } = useVoteManagerStore();
-
-  const { isFetching: isFetchingAPR, data: apr } =
-    useAverageStrategiesDelegationAPR(nft);
-
-  const { isFetching: isFetchingAPROfNft, data: aprOfNft } =
-    useAverageNftDelegationAPR(nft);
-
-  if (!nft) {
-    return null;
-  }
-
-  const internalOnClose = () => {
-    setEnableAutolock(true);
-    onClose();
-  };
-
-  return (
-    <Dialog
-      aria-labelledby="vote-manager-modal"
-      open={open}
-      onClose={internalOnClose}
-      sx={{ "& .MuiDialog-paper": { all: "unset" } }}
-    >
-      <div className="w-96 max-w-md rounded-md bg-[#040105] p-5 shadow-glow">
-        {nft.delegated ? (
-          <>
-            <div className="text-lg font-semibold">Undelegate NFT#{nft.id}</div>
-            <div
-              className={`font-sono text-lg ${
-                isFetchingAPROfNft ? "animate-pulse" : ""
-              }`}
-            >
-              NFT APR is {aprOfNft} %
-            </div>
-            <div className="flex items-end justify-end">
-              <button
-                onClick={() => undelegate(nft.id)}
-                className="border border-cantoGreen px-2 py-2 text-center text-sm font-medium text-cantoGreen transition-all duration-300 hover:bg-green-900 focus:outline-none focus:ring-4 focus:ring-green-200"
-              >
-                Undelegate
-              </button>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="text-lg font-semibold">Delegate NFT#{nft.id}</div>
-            <div
-              className={`font-sono text-lg ${
-                isFetchingAPR ? "animate-pulse" : ""
-              }`}
-            >
-              Average APR is {apr} %
-            </div>
-            <div className="flex flex-col gap-3">
-              <div className="text-sm text-slate-300">
-                <div>To Delegate:</div>
-                <ul>
-                  <li>-NFT must have minimum of 500 FLOW vested</li>
-                  <li>-NFT must be locked for at least 7 more days</li>
-                </ul>
-              </div>
-              <div className="flex items-end justify-between">
-                <Tooltip
-                  title="Autolock extends your veFLOW lock duration by 1 week every week to maintain
-                your voting power"
-                  placement="left"
-                >
-                  <div
-                    className="flex max-w-fit cursor-pointer items-center gap-1 text-sm"
-                    onClick={() => setEnableAutolock((prev) => !prev)}
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        setEnableAutolock((prev) => !prev);
-                      }
-                    }}
-                  >
-                    <div
-                      className={`h-4 w-4 outline outline-1 outline-cantoGreen transition-colors ${
-                        enableAutolock
-                          ? "bg-cantoGreen outline-offset-1"
-                          : "bg-transparent"
-                      }`}
-                    />
-                    <div>
-                      autolock {enableAutolock ? "enabled" : "disabled"}
-                    </div>
-                  </div>
-                </Tooltip>
-                <button
-                  onClick={() => delegate(nft.id, enableAutolock)}
-                  className="border border-cantoGreen px-2 py-2 text-center text-sm font-medium text-cantoGreen transition-colors hover:bg-green-900 focus:outline-none focus:ring-4 focus:ring-green-200"
-                >
-                  Delegate
-                </button>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-    </Dialog>
   );
 }
 

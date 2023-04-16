@@ -11,21 +11,21 @@ const partners: PartnerCardProps[] = [
   {
     title: "Alto.build",
     description:
-      "To buy or sell a veFLOW positions, visit Alto.build. The premier NFT market place on Canto",
+      "To buy or sell a veFLOW positions, visit Alto.build. The premier NFT market place on Canto.",
     link: "https://alto.build/",
     logo: "https://alto.build/_next/image?url=%2Falto-logo-v2.png&w=48&q=75",
   },
   {
     title: "ACryptoS - Advanced Crypto Strategies",
     description:
-      "To experience liquid locking option visit ACryptoS App and wrap your FLOW into acsFLOW",
+      "For a liquid locking option visit ACryptoS App and wrap your FLOW into acsFLOW.",
     link: "https://app.acryptos.com/vaults/7700/0x53a5dD07127739e5038cE81eff24ec503A6CC479",
     logo: "https://cre8r.vip/wp-content/uploads/2023/04/IMG_20230411_173159_601.png",
   },
   {
     title: "OpenX Project",
     description:
-      "To experience OpenX Perpetual Bond option visit OpenX App and wrap your FLOW into opxveFLOW",
+      "For a OpenX Perpetual Bond option visit OpenX App and wrap your FLOW into opxveFLOW.",
     link: "https://app.openxswap.exchange/PerpetualBonds",
     logo: "https://app.openxswap.exchange/assets/oswap_logo_icon.cdc95c52.png",
   },
@@ -69,7 +69,7 @@ const PartnerVestCard = ({ partner }: { partner: PartnerCardProps }) => {
           <div className="font-light">{partner.description}</div>
         </div>
         <div className="w-fit text-sm font-bold text-cantoGreen underline transition-all hover:text-green-300 hover:no-underline">
-          Check out
+          Check it out
         </div>
       </div>
     </a>

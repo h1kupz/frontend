@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import { CacheProvider, EmotionCache } from "@emotion/react";
 import { ThemeProvider } from "@mui/material/styles";
 import { QueryClient, QueryClientProvider } from "react-query";
+import { ReactQueryDevtools } from "react-query/devtools";
 
 import lightTheme from "../theme/light";
 import darkTheme from "../theme/dark";
@@ -82,6 +83,7 @@ export default function MyApp({
             <Layout>
               <Component {...pageProps} />
             </Layout>
+            <ReactQueryDevtools />
           </QueryClientProvider>
         ) : (
           <Configure {...pageProps} />
