@@ -363,37 +363,6 @@ export default function EnhancedTable({
                           </Typography>
                         </TableCell>
                         <TableCell align="right">
-                          <Tooltip
-                            title={
-                              <div>
-                                Only reset it if you want to do NFT merge.
-                                <br />
-                                Reset disables voting until next epoch.
-                              </div>
-                            }
-                            placement="right"
-                            enterTouchDelay={500}
-                          >
-                            <span>
-                              <Button
-                                variant="outlined"
-                                color="primary"
-                                onClick={() => {
-                                  onReset(row);
-                                }}
-                                className="mr-2"
-                                disabled={row.delegated}
-                                sx={{
-                                  "&.MuiButton-root.Mui-disabled": {
-                                    color: "gray",
-                                    borderColor: "gray",
-                                  },
-                                }}
-                              >
-                                Reset
-                              </Button>
-                            </span>
-                          </Tooltip>
                           {row.delegated && row.autolock ? (
                             <Button
                               variant="outlined"
@@ -424,10 +393,45 @@ export default function EnhancedTable({
                               setSelectedNft(row);
                               setVoteManagerOpen(true);
                             }}
-                            className="mr-2"
+                            className="mr-2 min-w-[109px]"
                           >
                             {row.delegated ? "Undelegate" : "Delegate"}
                           </Button>
+                          <Tooltip
+                            title={
+                              row.delegated ? (
+                                <div>Can't reset delegated NFT</div>
+                              ) : (
+                                <div>
+                                  Only reset it if you want to do NFT merge.
+                                  <br />
+                                  Reset disables voting until next epoch.
+                                </div>
+                              )
+                            }
+                            placement="right"
+                            enterTouchDelay={500}
+                          >
+                            <span>
+                              <Button
+                                variant="outlined"
+                                color="primary"
+                                onClick={() => {
+                                  onReset(row);
+                                }}
+                                className="mr-2"
+                                disabled={row.delegated}
+                                sx={{
+                                  "&.MuiButton-root.Mui-disabled": {
+                                    color: "gray",
+                                    borderColor: "gray",
+                                  },
+                                }}
+                              >
+                                Reset
+                              </Button>
+                            </span>
+                          </Tooltip>
                           <Button
                             variant="outlined"
                             color="primary"
