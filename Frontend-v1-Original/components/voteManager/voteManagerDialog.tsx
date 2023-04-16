@@ -27,6 +27,10 @@ function VoteManagerDialog({
     internalOnClose();
   };
   const { mutate: undelegate } = useUndelegate();
+  const onUndelegate = () => {
+    undelegate({ tokenID: nft?.id });
+    internalOnClose();
+  };
 
   const { isFetching: isFetchingAPR, data: apr } =
     useAverageStrategiesDelegationAPR(nft);
@@ -75,7 +79,7 @@ function VoteManagerDialog({
             </div>
             <div className="flex items-end justify-end">
               <button
-                onClick={() => undelegate({ tokenID: nft.id })}
+                onClick={onUndelegate}
                 className="border border-cantoGreen px-2 py-2 text-center text-sm font-medium text-cantoGreen transition-all duration-300 hover:bg-green-900 focus:outline-none focus:ring-4 focus:ring-green-200"
               >
                 Undelegate

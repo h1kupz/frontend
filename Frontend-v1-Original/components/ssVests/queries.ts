@@ -153,7 +153,7 @@ const getVestNFTs = async (
 export const useGovToken = () => {
   const account = useAccount();
   return useQuery({
-    queryKey: ["govTokenBase", account],
+    queryKey: ["govTokenBase", account?.address],
     queryFn: () => getGovTokenBase(account),
     enabled: !!account,
     initialData: null,
@@ -175,7 +175,7 @@ export const useVestNfts = () => {
   const { data: veToken } = useVeToken();
 
   return useQuery({
-    queryKey: ["vests", "allNfts", account],
+    queryKey: ["vests", "allNfts", account?.address],
     queryFn: () => getVestNFTs(account, govToken, veToken),
     enabled: !!account && !!govToken && !!veToken,
     initialData: [],

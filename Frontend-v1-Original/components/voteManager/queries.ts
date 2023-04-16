@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from "react-query";
 import { v4 as uuidv4 } from "uuid";
 import type { AbiItem } from "web3-utils";
 
@@ -35,6 +40,7 @@ const getNFTAllowance = async (address: `0x${string}`) => {
 };
 
 const delegate = async (
+  queryClient: QueryClient,
   account: { address: `0x${string}` } | null,
   tokenID?: string,
   autolock?: boolean
@@ -170,6 +176,9 @@ const delegate = async (
               if (err) {
                 return stores.emitter.emit(ACTIONS.ERROR, err);
               }
+              queryClient.invalidateQueries({
+                queryKey: ["vests", "allNfts"],
+              });
             }
           );
         }
@@ -186,15 +195,18 @@ export const useDelegate = () => {
   const account = useAccount();
   return useMutation({
     mutationFn: (options: { tokenID?: string; autolock?: boolean }) =>
-      delegate(account, options.tokenID, options.autolock),
-    onSuccess: () =>
-      queryClient.invalidateQueries({
-        queryKey: ["vests", "allNfts"],
-      }),
+      delegate(queryClient, account, options.tokenID, options.autolock),
+    // TODO this doesnt work because of the function specific, it uses promises inside promises which can lead to unexpected behaviour
+    // temporary workaround is passing query client inside delegate and invalidation in _thisCallContractWrite callback
+    // onSuccess: () =>
+    //   queryClient.invalidateQueries({
+    //     queryKey: ["vests", "allNfts"],
+    //   }),
   });
 };
 
 const undelegate = async (
+  queryClient: QueryClient,
   account: { address: `0x${string}` } | null,
   tokenID?: string
 ) => {
@@ -298,6 +310,9 @@ const undelegate = async (
         if (err) {
           return stores.emitter.emit(ACTIONS.ERROR, err);
         }
+        queryClient.invalidateQueries({
+          queryKey: ["vests", "allNfts"],
+        });
       }
     );
   } catch (e) {
@@ -311,15 +326,12 @@ export const useUndelegate = () => {
   const account = useAccount();
   return useMutation({
     mutationFn: (options: { tokenID?: string }) =>
-      undelegate(account, options.tokenID),
-    onSuccess: () =>
-      queryClient.invalidateQueries({
-        queryKey: ["vests", "allNfts"],
-      }),
+      undelegate(queryClient, account, options.tokenID),
   });
 };
 
 const autolock = async (
+  queryClient: QueryClient,
   account: { address: `0x${string}` } | null,
   tokenID: string,
   enable: boolean
@@ -370,6 +382,9 @@ const autolock = async (
         if (err) {
           return stores.emitter.emit(ACTIONS.ERROR, err);
         }
+        queryClient.invalidateQueries({
+          queryKey: ["vests", "allNfts"],
+        });
       }
     );
   } catch (e) {
@@ -383,11 +398,7 @@ export const useAutolock = () => {
   const account = useAccount();
   return useMutation({
     mutationFn: (options: { tokenID: string; enable: boolean }) =>
-      autolock(account, options.tokenID, options.enable),
-    onSuccess: () =>
-      queryClient.invalidateQueries({
-        queryKey: ["vests", "allNfts"],
-      }),
+      autolock(queryClient, account, options.tokenID, options.enable),
   });
 };
 
