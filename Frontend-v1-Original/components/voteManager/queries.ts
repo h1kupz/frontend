@@ -17,7 +17,10 @@ import { VestNFT } from "../../stores/types/types";
 import { useAccount } from "../../hooks/useAccount";
 import { getTXUUID } from "../../utils/utils";
 
-const getNFTAllowance = async (address: `0x${string}`) => {
+const getNFTAllowance = async (
+  tokenID: string,
+  stratAddress: `0x${string}`
+) => {
   try {
     const votingContract = {
       address: CONTRACTS.VE_TOKEN_ADDRESS,
@@ -26,8 +29,8 @@ const getNFTAllowance = async (address: `0x${string}`) => {
 
     const isApproved = await viemClient.readContract({
       ...votingContract,
-      functionName: "isApprovedForAll",
-      args: [address, CONTRACTS.VOTE_MANAGER_ADDRESS],
+      functionName: "isApprovedOrOwner",
+      args: [stratAddress, BigInt(tokenID)],
     });
 
     return isApproved;
@@ -84,8 +87,14 @@ const delegate = async (
       ],
     });
 
+    const [stratAddress] = await viemClient.readContract({
+      address: CONTRACTS.VOTE_MANAGER_ADDRESS,
+      abi: CONTRACTS.VOTE_MANAGER_ABI,
+      functionName: "selectDepositStrategy",
+    });
+
     // CHECK ALLOWANCES AND SET TX DISPLAY
-    const allowance = await getNFTAllowance(account.address);
+    const allowance = await getNFTAllowance(tokenID, stratAddress);
     if (allowance === null)
       throw new Error("Error getting approval in create vest");
     if (!allowance) {
@@ -126,8 +135,8 @@ const delegate = async (
       const tokenPromise = new Promise<void>((resolve, reject) => {
         stores.stableSwapStore._callContractWait(
           vestingNftContract,
-          "setApprovalForAll",
-          [CONTRACTS.VOTE_MANAGER_ADDRESS, tokenID],
+          "approve",
+          [stratAddress, tokenID],
           account,
           allowanceTXID,
           (err) => {
@@ -243,8 +252,15 @@ const undelegate = async (
       ],
     });
 
+    const stratAddress = await viemClient.readContract({
+      address: CONTRACTS.VOTE_MANAGER_ADDRESS,
+      abi: CONTRACTS.VOTE_MANAGER_ABI,
+      functionName: "tokenIdToStrat",
+      args: [BigInt(tokenID)],
+    });
+
     // CHECK ALLOWANCES AND SET TX DISPLAY
-    const allowance = await getNFTAllowance(account.address);
+    const allowance = await getNFTAllowance(tokenID, stratAddress);
     if (allowance === null)
       throw new Error("Error getting approval in create vest");
     if (!allowance) {
@@ -272,8 +288,8 @@ const undelegate = async (
       const tokenPromise = new Promise<void>((resolve, reject) => {
         stores.stableSwapStore._callContractWait(
           vestingNftContract,
-          "setApprovalForAll",
-          [CONTRACTS.VOTE_MANAGER_ADDRESS, tokenID],
+          "approve",
+          [stratAddress, tokenID],
           account,
           allowanceTXID,
           (err) => {
