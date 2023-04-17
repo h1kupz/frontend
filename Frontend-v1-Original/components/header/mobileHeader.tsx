@@ -230,7 +230,6 @@ function Header() {
           className="flex cursor-pointer items-center justify-center gap-2 rounded-[40px] py-1"
         >
           <SiteLogo />
-          <Typography className="text-2xl font-bold">v2</Typography>
         </a>
         <div className="flex justify-between px-6">
           {account && account.address ? (

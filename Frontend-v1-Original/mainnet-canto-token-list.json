@@ -67,7 +67,7 @@
     "address": "0xFA3C22C069B9556A4B2f7EcE1Ee3B467909f4864",
     "chainId": 7700,
     "decimals": 6,
-    "logoURI": "https://app.osmosis.zone/_next/image?url=%2Ftokens%2Fsomm.png&w=64&q=75",
+    "logoURI": "https://raw.githubusercontent.com/cosmos/chain-registry/master/sommelier/images/somm.png",
     "name": "Sommelier",
     "symbol": "SOMM"
   },
@@ -75,7 +75,7 @@
     "address": "0xc03345448969Dd8C00e9E4A85d2d9722d093aF8E",
     "chainId": 7700,
     "decimals": 6,
-    "logoURI": "https://app.osmosis.zone/_next/image?url=%2Ftokens%2Fgrav.svg&w=64&q=75",
+    "logoURI": "https://raw.githubusercontent.com/cosmos/chain-registry/master/gravitybridge/images/grav.png",
     "name": "Graviton",
     "symbol": "GRAV"
   },
@@ -83,7 +83,7 @@
     "address": "0x1D54EcB8583Ca25895c512A8308389fFD581F9c9",
     "chainId": 7700,
     "decimals": 18,
-    "logoURI": "https://app.osmosis.zone/_next/image?url=%2Ftokens%2Finj.svg&w=64&q=75",
+    "logoURI": "https://raw.githubusercontent.com/cosmos/chain-registry/master/injective/images/inj.svg",
     "name": "Injective",
     "symbol": "INJ"
   },
@@ -91,7 +91,7 @@
     "address": "0xC5e00D3b04563950941f7137B5AfA3a534F0D6d6",
     "chainId": 7700,
     "decimals": 6,
-    "logoURI": "https://app.osmosis.zone/_next/image?url=%2Ftokens%2Fkava.png&w=64&q=75",
+    "logoURI": "https://raw.githubusercontent.com/cosmos/chain-registry/master/kava/images/kava.svg",
     "name": "Kava",
     "symbol": "KAVA"
   },
@@ -99,7 +99,7 @@
     "address": "0x0CE35b0D42608Ca54Eb7bcc8044f7087C18E7717",
     "chainId": 7700,
     "decimals": 6,
-    "logoURI": "https://app.osmosis.zone/_next/image?url=%2Ftokens%2Fosmo.svg&w=64&q=75",
+    "logoURI": "https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/osmo.svg",
     "name": "Osmosis",
     "symbol": "OSMO"
   },
@@ -107,7 +107,7 @@
     "address": "0x5aD523d94Efb56C400941eb6F34393b84c75ba39",
     "chainId": 7700,
     "decimals": 6,
-    "logoURI": "https://app.osmosis.zone/_next/image?url=%2Ftokens%2Fakt.svg&w=64&q=75",
+    "logoURI": "https://raw.githubusercontent.com/cosmos/chain-registry/master/akash/images/akt.svg",
     "name": "Akash",
     "symbol": "AKASH"
   },
@@ -115,7 +115,7 @@
     "address": "0x5db67696C3c088DfBf588d3dd849f44266ff0ffa",
     "chainId": 7700,
     "decimals": 6,
-    "logoURI": "https://crescent.explorers.guru/chains/crescent.svg",
+    "logoURI": "https://raw.githubusercontent.com/cosmos/chain-registry/master/crescent/images/cre.svg",
     "name": "Crescent",
     "symbol": "CRE"
   },
@@ -123,7 +123,7 @@
     "address": "0x3452e23F9c4cC62c70B7ADAd699B264AF3549C19",
     "chainId": 7700,
     "decimals": 6,
-    "logoURI": "https://app.osmosis.zone/_next/image?url=%2Ftokens%2Fcmdx.png&w=64&q=75",
+    "logoURI": "https://raw.githubusercontent.com/cosmos/chain-registry/master/comdex/images/cmdx.svg",
     "name": "Comdex",
     "symbol": "CMDX"
   },
@@ -171,7 +171,7 @@
     "address": "0x80A16016cC4A2E6a2CACA8a4a498b1699fF0f844",
     "chainId": 7700,
     "decimals": 8,
-    "logoURI": "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
+    "logoURI": "https://assets.coingecko.com/coins/images/29495/large/MultiBTC.png",
     "name": "Multichain BTC",
     "symbol": "multiBTC"
   },
@@ -187,7 +187,7 @@
     "address": "0x461d52769884ca6235B685EF2040F47d30C94EB5",
     "chainId": 7700,
     "decimals": 18,
-    "logoURI": "https://raw.githubusercontent.com/acryptos/acryptos-assets/master/icon-circle-1500.png ",
+    "logoURI": "https://raw.githubusercontent.com/acryptos/acryptos-assets/master/icon-circle-1500.png",
     "name": "ACryptoS",
     "symbol": "ACS"
   },
@@ -227,7 +227,7 @@
     "address": "0xD32eB974468ed767338533842D2D4Cc90B9BAb46",
     "chainId": 7700,
     "decimals": 6,
-    "logoURI": "https://assets.coingecko.com/nft_contracts/images/1612/small/the-merge-regenesis.png?1663741627",
+    "logoURI": "https://raw.githubusercontent.com/cosmos/chain-registry/master/quicksilver/images/qstars.png",
     "name": "Quicksilver Staked STARS",
     "symbol": "qSTARS"
   },
@@ -235,7 +235,7 @@
     "address": "0x9d6F2a9fDB32708e1AC07788cc29D6125ac73027",
     "chainId": 7700,
     "decimals": 6,
-    "logoURI": "https://assets.coingecko.com/nft_contracts/images/1612/small/the-merge-regenesis.png?1663741627",
+    "logoURI": "https://raw.githubusercontent.com/cosmos/chain-registry/master/quicksilver/images/qatom.png",
     "name": "Quicksilver Staked ATOM",
     "symbol": "qATOM"
   },
@@ -243,7 +243,7 @@
     "address": "0xB5124FA2b2cF92B2D469b249433BA1c96BDF536D",
     "chainId": 7700,
     "decimals": 6,
-    "logoURI": "https://assets.coingecko.com/nft_contracts/images/1612/small/the-merge-regenesis.png?1663741627",
+    "logoURI": "https://raw.githubusercontent.com/cosmos/chain-registry/master/quicksilver/images/qregen.png",
     "name": "Quicksilver Staked REGEN",
     "symbol": "qREGEN"
   },
@@ -251,7 +251,7 @@
     "address": "0xF0965c8f0755CF080a61C91EDd6707F0532c8fE7",
     "chainId": 7700,
     "decimals": 6,
-    "logoURI": "https://assets.coingecko.com/coins/images/26857/small/quicksilver-logo-icon-render.png?1660484191",
+    "logoURI": "https://raw.githubusercontent.com/cosmos/chain-registry/master/quicksilver/images/qck.png",
     "name": "Quicksilver",
     "symbol": "QCK"
   },
@@ -259,7 +259,7 @@
     "address": "0x205CF44075E77A3543abC690437F3b2819bc450a",
     "chainId": 7700,
     "decimals": 18,
-    "logoURI": "https://assets.coingecko.com/markets/images/887/small/evmoswap.png?1654269660s",
+    "logoURI": "https://raw.githubusercontent.com/cosmos/chain-registry/master/stride/images/stevmos.svg",
     "name": "Stride Staked EVMOS",
     "symbol": "stEVMOS"
   },
@@ -267,7 +267,7 @@
     "address": "0x4A2a90D444DbB7163B5861b772f882BbA394Ca67",
     "chainId": 7700,
     "decimals": 6,
-    "logoURI": "https://assets.coingecko.com/coins/images/26316/small/stATOM.png?1663309183",
+    "logoURI": "https://raw.githubusercontent.com/cosmos/chain-registry/master/stride/images/statom.svg",
     "name": "Stride Staked ATOM",
     "symbol": "stATOM"
   },
@@ -275,7 +275,7 @@
     "address": "0xe01C6D4987Fc8dCE22988DADa92d56dA701d0Fe0",
     "chainId": 7700,
     "decimals": 6,
-    "logoURI": "https://assets.coingecko.com/coins/images/28700/small/stJUNO_800.png?1673414957",
+    "logoURI": "https://raw.githubusercontent.com/cosmos/chain-registry/master/stride/images/stjuno.svg",
     "name": "Stride Staked JUNO",
     "symbol": "stJUNO"
   },
@@ -283,7 +283,7 @@
     "address": "0x3515F25AB7637adcF1b69F4D384ed5936B83431F",
     "chainId": 7700,
     "decimals": 6,
-    "logoURI": "https://assets.coingecko.com/coins/images/28698/small/stOSMO_800.png?1673414720",
+    "logoURI": "https://raw.githubusercontent.com/cosmos/chain-registry/master/stride/images/stosmo.svg",
     "name": "Stride Staked OSMO",
     "symbol": "stOSMO"
   },
@@ -291,7 +291,7 @@
     "address": "0x4AF57825b86Abf93D4F9D720bEF7c1C1b300A6F3",
     "chainId": 7700,
     "decimals": 6,
-    "logoURI": "https://assets.coingecko.com/coins/images/22363/small/stars.png?1645256657",
+    "logoURI": "https://raw.githubusercontent.com/cosmos/chain-registry/master/stride/images/ststars.png",
     "name": "Stride Staked STARS",
     "symbol": "stSTARS"
   },
@@ -299,7 +299,7 @@
     "address": "0x13974cf36984216C90D1F4FC815C156092feA396",
     "chainId": 7700,
     "decimals": 6,
-    "logoURI": "https://assets.coingecko.com/coins/images/27275/small/STRD_800.png?1663116708",
+    "logoURI": "https://raw.githubusercontent.com/cosmos/chain-registry/master/stride/images/strd.svg",
     "name": "Stride",
     "symbol": "STRD"
   },
@@ -307,7 +307,7 @@
     "address": "0x50dE24B3f0B3136C50FA8A3B8ebc8BD80a269ce5",
     "chainId": 7700,
     "decimals": 6,
-    "logoURI": "https://assets.coingecko.com/coins/images/28289/small/B5712581-7546-47FA-8ECA-B256CD8F8F34.png?1669213326",
+    "logoURI": "https://raw.githubusercontent.com/cosmos/chain-registry/master/persistence/images/stkatom.svg",
     "name": "Persistence Staked ATOM",
     "symbol": "stkATOM"
   },
@@ -315,7 +315,7 @@
     "address": "0xc8B4d3e67238e38B20d38908646fF6F4F48De5EC",
     "chainId": 7700,
     "decimals": 6,
-    "logoURI": "https://assets.coingecko.com/coins/images/14582/small/512_Light.png?1617149658",
+    "logoURI": "https://raw.githubusercontent.com/cosmos/chain-registry/master/persistence/images/xprt.svg",
     "name": "Persistence",
     "symbol": "XPRT"
   },
@@ -323,7 +323,7 @@
     "address": "0x15C3Eb3B621d1Bff62CbA1c9536B7c1AE9149b57",
     "chainId": 7700,
     "decimals": 6,
-    "logoURI": "https://assets.coingecko.com/coins/images/14879/small/Sentinel_512X512.png?1622174499",
+    "logoURI": "https://raw.githubusercontent.com/cosmos/chain-registry/master/sentinel/images/dvpn.svg",
     "name": "Sentinel",
     "symbol": "DVPN"
   },
@@ -331,7 +331,7 @@
     "address": "0xF5b24c0093b65408ACE53df7ce86a02448d53b25",
     "chainId": 7700,
     "decimals": 18,
-    "logoURI": "https://assets.coingecko.com/coins/images/24023/small/evmos.png?1653958927",
+    "logoURI": "https://raw.githubusercontent.com/cosmos/chain-registry/master/evmos/images/evmos.svg",
     "name": "Evmos",
     "symbol": "EVMOS"
   },
@@ -339,9 +339,9 @@
     "address": "0xc71aAf8e486e3F33841BB56Ca3FD2aC3fa8D29a8",
     "chainId": 7700,
     "decimals": 18,
-    "logoURI": "https://ethereum.org/static/655aaefb744ae2f9f818095a436d38b5/448ee/eth-diamond-purple-purple.webp",
+    "logoURI": "https://assets.coingecko.com/coins/images/18834/large/wstETH.png",
     "name": "Lido Staked ETH",
-    "symbol": "WSTETH"
+    "symbol": "wstETH"
   },
   {
     "address": "0xc9BAA8cfdDe8E328787E29b4B078abf2DaDc2055",

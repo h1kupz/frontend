@@ -8,6 +8,7 @@ export default function Info() {
   const forceUpdate = useCallback(() => updateState({}), []);
 
   const [tvl, setTvl] = useState<number>(0);
+  const [tbv, setTbv] = useState<number>(0);
   const [flowPrice, setFlowPrice] = useState<number>(0);
   const [circulatingSupply, setCirculatingSupply] = useState<number>(0);
   const [mCap, setMCap] = useState<number>(0);
@@ -16,6 +17,7 @@ export default function Info() {
   useEffect(() => {
     const stableSwapUpdated = () => {
       setTvl(stores.stableSwapStore.getStore("tvl"));
+      setTbv(stores.stableSwapStore.getStore("tbv"));
       setCirculatingSupply(
         stores.stableSwapStore.getStore("circulatingSupply")
       );
@@ -37,6 +39,7 @@ export default function Info() {
     };
 
     setTvl(stores.stableSwapStore.getStore("tvl"));
+    setTbv(stores.stableSwapStore.getStore("tbv"));
     const _flowPrice = stores.stableSwapStore
       .getStore("tokenPrices")
       .get(CONTRACTS.GOV_TOKEN_ADDRESS.toLowerCase());
@@ -61,6 +64,10 @@ export default function Info() {
       <div>
         <span className="font-normal">TVL: </span>
         <span className="tracking-tighter">${formatFinancialData(tvl)}</span>
+      </div>
+      <div>
+        <span className="font-normal">TBV: </span>
+        <span className="tracking-tighter">${formatFinancialData(tbv)}</span>
       </div>
       <div>
         <span className="font-normal">$FLOW price: </span>

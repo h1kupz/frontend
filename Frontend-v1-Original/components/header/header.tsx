@@ -232,7 +232,6 @@ function Header() {
             className="flex cursor-pointer items-center justify-center gap-2 rounded-[40px] py-1"
           >
             <SiteLogo />
-            <Typography className="text-2xl font-bold">v2</Typography>
           </a>
           <Navigation />
           <div className="flex justify-end gap-1 md:max-[1200px]:w-full md:max-[1200px]:items-end md:max-[1200px]:px-8 xl:w-[260px]">

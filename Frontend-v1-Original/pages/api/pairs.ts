@@ -12,6 +12,7 @@ export default async function handler(
 
     const tokenPricesMap = new Map<string, number>();
     let tvl = 0;
+    let tbv = 0;
 
     for (const pair of resJson.data) {
       if (!tokenPricesMap.has(pair.token0.address.toLowerCase())) {
@@ -27,9 +28,12 @@ export default async function handler(
         );
       }
       tvl += pair.tvl;
+      tbv += pair.gauge?.tbv ?? 0;
     }
 
-    res.status(200).json({ ...resJson, prices: [...tokenPricesMap.entries()], tvl });
+    res
+      .status(200)
+      .json({ ...resJson, prices: [...tokenPricesMap.entries()], tvl, tbv });
   } catch (e) {
     res.status(200).json({ data: [] });
   }
