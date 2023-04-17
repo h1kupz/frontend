@@ -265,7 +265,7 @@ const EnhancedTableToolbar = (props: PairsTableToolbarProps) => {
             className="flex w-full flex-[1]"
             variant="outlined"
             fullWidth
-            placeholder="CANTO, MIM, 0x..."
+            placeholder="CANTO, NOTE, 0x..."
             value={search}
             onChange={onSearchChanged}
             InputProps={{

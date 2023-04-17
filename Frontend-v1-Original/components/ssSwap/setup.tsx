@@ -980,7 +980,7 @@ function AssetSelect({
       >
         <div className="relative mr-3 w-14">
           <img
-            className="rounded-[30px] border border-[rgba(126,153,153,0.5)] bg-[rgb(33,43,72)] p-[6px]"
+            className="h-full w-full rounded-[30px] border border-[rgba(126,153,153,0.5)] bg-[rgb(33,43,72)] p-[6px]"
             alt=""
             src={asset ? `${asset.logoURI}` : ""}
             height="60px"
@@ -1029,7 +1029,7 @@ function AssetSelect({
       >
         <div className="relative mr-3 w-14">
           <img
-            className="rounded-[30px] border border-[rgba(126,153,153,0.5)] bg-[rgb(33,43,72)] p-[6px]"
+            className="h-full w-full rounded-[30px] border border-[rgba(126,153,153,0.5)] bg-[rgb(33,43,72)] p-[6px]"
             alt=""
             src={asset ? `${asset.logoURI}` : ""}
             height="60px"
@@ -1065,7 +1065,7 @@ function AssetSelect({
             autoFocus
             variant="outlined"
             fullWidth
-            placeholder="CANTO, MIM, 0x..."
+            placeholder="CANTO, NOTE, 0x..."
             value={search}
             onChange={onSearchChanged}
             InputProps={{
@@ -1104,7 +1104,7 @@ function AssetSelect({
             autoFocus
             variant="outlined"
             fullWidth
-            placeholder="CANTO, MIM, 0x..."
+            placeholder="CANTO, NOTE, 0x..."
             value={search}
             onChange={onSearchChanged}
             InputProps={{

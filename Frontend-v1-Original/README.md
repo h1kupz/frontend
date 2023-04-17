@@ -15,8 +15,7 @@ Inspired by Solidly and Velodrome
 
 ## Deployment
 
-- [Arbitrum](https://velocimeter.xyz/)
-- [Canto](https://canto.velocimeter.xyz/)
+- [Canto](https://velocimeter.xyz/)
 
 ## Getting started
 

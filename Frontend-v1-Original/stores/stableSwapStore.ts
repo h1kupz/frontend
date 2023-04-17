@@ -5111,11 +5111,6 @@ class Store {
             status: "WAITING",
           },
           {
-            uuid: rebaseTXID,
-            description: `Checking unclaimed rebase distribution`,
-            status: "WAITING",
-          },
-          {
             uuid: resetTXID,
             description: `Checking if your has votes`,
             status: "WAITING",
@@ -5179,47 +5174,6 @@ class Store {
         });
 
         await claimPromise;
-      }
-
-      if (rewards.veDist.length > 0) {
-        this.emitter.emit(ACTIONS.TX_STATUS, {
-          uuid: rebaseTXID,
-          description: `Claiming rebase distribution`,
-        });
-      } else {
-        this.emitter.emit(ACTIONS.TX_STATUS, {
-          uuid: rebaseTXID,
-          description: `No unclaimed rebase`,
-          status: "DONE",
-        });
-      }
-
-      if (rewards.veDist.length > 0) {
-        // SUBMIT CLAIM TRANSACTION
-        const veDistContract = new web3.eth.Contract(
-          CONTRACTS.VE_DIST_ABI as unknown as AbiItem[],
-          CONTRACTS.VE_DIST_ADDRESS
-        );
-
-        const claimVeDistPromise = new Promise<void>((resolve, reject) => {
-          this._callContractWait(
-            veDistContract,
-            "claim",
-            [tokenID],
-            account,
-            rebaseTXID,
-            (err) => {
-              if (err) {
-                reject(err);
-                return;
-              }
-
-              resolve();
-            }
-          );
-        });
-
-        await claimVeDistPromise;
       }
 
       // CHECK if veNFT has votes

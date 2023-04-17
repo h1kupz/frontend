@@ -23,7 +23,7 @@ export default function Layout({
         />
         <meta
           name="description"
-          content="Velocimeter allows low cost, near 0 slippage trades on uncorrelated or tightly correlated assets built on Arbitrum."
+          content="Velocimeter allows low cost, near 0 slippage trades on uncorrelated or tightly correlated assets built on Canto."
         />
         <meta name="og:title" content="Velocimeter" />
         <meta name="twitter:card" content="summary_large_image" />
