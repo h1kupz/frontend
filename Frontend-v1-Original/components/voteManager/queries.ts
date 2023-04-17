@@ -183,12 +183,13 @@ const delegate = async (
               if (err) {
                 return stores.emitter.emit(ACTIONS.ERROR, err);
               }
-              queryClient.invalidateQueries({
-                queryKey: ["vests", "allNfts"],
-              });
             }
           );
         }
+
+        queryClient.invalidateQueries({
+          queryKey: ["vests", "allNfts"],
+        });
       }
     );
   } catch (e) {
