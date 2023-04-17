@@ -11,22 +11,7 @@ import { useVestNfts, useGovToken, useVeToken } from "./queries";
 export default function ssVests() {
   const { data: govToken } = useGovToken();
   const { data: veToken } = useVeToken();
-
   const { data: vestNFTs, refetch: refetchVestNfts } = useVestNfts();
-
-  useEffect(() => {
-    const resetVestReturned = () => {
-      refetchVestNfts();
-    };
-
-    stores.emitter.on(ACTIONS.RESET_VEST_RETURNED, resetVestReturned);
-    return () => {
-      stores.emitter.removeListener(
-        ACTIONS.RESET_VEST_RETURNED,
-        resetVestReturned
-      );
-    };
-  }, []);
 
   return (
     <div className="m-auto mb-5 flex w-[calc(100%-40px)] max-w-[1400px] flex-col items-end p-0 pt-20 pb-2 xl:mb-14 xl:w-[calc(100%-180px)] xl:pt-0">

@@ -4,7 +4,6 @@ import {
   useQueryClient,
   type QueryClient,
 } from "react-query";
-import { v4 as uuidv4 } from "uuid";
 import type { AbiItem } from "web3-utils";
 
 import viemClient from "../../stores/connectors/viem";
@@ -16,8 +15,7 @@ import {
 } from "../../stores/constants/constants";
 import { VestNFT } from "../../stores/types/types";
 import { useAccount } from "../../hooks/useAccount";
-
-const getTXUUID = () => uuidv4();
+import { getTXUUID } from "../../utils/utils";
 
 const getNFTAllowance = async (address: `0x${string}`) => {
   try {

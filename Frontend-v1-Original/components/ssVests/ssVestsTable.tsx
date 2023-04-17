@@ -28,6 +28,7 @@ import stores from "../../stores";
 import { formatCurrency } from "../../utils/utils";
 import { ACTIONS } from "../../stores/constants/constants";
 import { GovToken, VestNFT, VeToken } from "../../stores/types/types";
+import { useResetVest } from "./queries";
 
 const headCells = [
   { id: "NFT", numeric: false, disablePadding: false, label: "NFT" },
@@ -153,6 +154,7 @@ export default function EnhancedTable({
   const [selectedNft, setSelectedNft] = useState<VestNFT>();
 
   const { mutate: autolock } = useAutolock();
+  const { mutate: reset } = useResetVest();
 
   const handleChangePage = (
     event: React.MouseEvent<HTMLButtonElement, MouseEvent> | null,
@@ -225,10 +227,7 @@ export default function EnhancedTable({
   };
 
   const onReset = (nft: VestNFT) => {
-    stores.dispatcher.dispatch({
-      type: ACTIONS.RESET_VEST,
-      content: { tokenID: nft.id },
-    });
+    reset(nft.id);
   };
 
   const onVoteManagerDialogClose = () => {
