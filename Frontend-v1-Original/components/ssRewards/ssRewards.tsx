@@ -15,7 +15,6 @@ import { formatCurrency } from "../../utils/utils";
 import stores from "../../stores";
 import { ACTIONS } from "../../stores/constants/constants";
 
-import classes from "./ssRewards.module.css";
 import {
   VeDistReward,
   VestNFT,
@@ -180,81 +179,79 @@ export default function ssRewards() {
 
   const renderMediumInput = (value: VestNFT, options: VestNFT[]) => {
     return (
-      <div className={classes.textField}>
-        <div className={classes.mediumInputContainer}>
-          <Grid container>
-            <Grid item lg="auto" md="auto" sm={12} xs={12}>
-              <Typography variant="body2" className={classes.helpText}>
-                Please select your veNFT:
-              </Typography>
-            </Grid>
-            <Grid item lg={6} md={6} sm={12} xs={12}>
-              <div className={classes.mediumInputAmount}>
-                <Select
-                  fullWidth
-                  value={value}
-                  onChange={handleChange}
-                  // @ts-expect-error This is because of how material-ui works
-                  InputProps={{
-                    className: classes.mediumInput,
-                  }}
-                  sx={{ "& .MuiSelect-select": { height: "inherit" } }}
-                >
-                  {options &&
-                    options.map((option) => {
-                      return (
-                        <MenuItem
-                          key={option.id}
-                          // ok at runtime if MenuItem is an immediate child of Select since value is transferred to data-value.
-                          value={option as any}
-                        >
-                          <div className={classes.menuOption}>
-                            <Typography>Token #{option.id}</Typography>
-                            <div>
-                              <Typography
-                                align="right"
-                                className={classes.smallerText}
-                              >
-                                {formatCurrency(option.lockValue)}
-                              </Typography>
-                              <Typography
-                                color="textSecondary"
-                                className={classes.smallerText}
-                              >
-                                {veToken?.symbol}
-                              </Typography>
-                            </div>
-                          </div>
-                        </MenuItem>
-                      );
-                    })}
-                </Select>
-              </div>
-            </Grid>
+      <div className="flex min-h-[60px] w-full flex-wrap items-center rounded-lg bg-[#272826] pl-5">
+        <Grid container>
+          <Grid item lg="auto" md="auto" sm={12} xs={12}>
+            <Typography
+              variant="body2"
+              className="py-4 pr-2 text-[rgba(126,153,176,0.9)]"
+            >
+              Please select your veNFT:
+            </Typography>
           </Grid>
-        </div>
+          <Grid item lg={6} md={6} sm={12} xs={12}>
+            <div className="h-full w-full min-w-[300px] flex-[1]">
+              <Select
+                fullWidth
+                value={value}
+                onChange={handleChange}
+                // @ts-expect-error This is because of how material-ui works
+                InputProps={{
+                  style: {
+                    "font-size": "32px !important",
+                  },
+                }}
+                sx={{ "& .MuiSelect-select": { height: "inherit" } }}
+              >
+                {options &&
+                  options.map((option) => {
+                    return (
+                      <MenuItem
+                        key={option.id}
+                        // ok at runtime if MenuItem is an immediate child of Select since value is transferred to data-value.
+                        value={option as any}
+                      >
+                        <div className="flex w-[calc(100%-24px)] items-center justify-between">
+                          <Typography>Token #{option.id}</Typography>
+                          <div>
+                            <Typography align="right" className="text-xs">
+                              {formatCurrency(option.lockValue)}
+                            </Typography>
+                            <Typography
+                              color="textSecondary"
+                              className="text-xs"
+                            >
+                              {veToken?.symbol}
+                            </Typography>
+                          </div>
+                        </div>
+                      </MenuItem>
+                    );
+                  })}
+              </Select>
+            </div>
+          </Grid>
+        </Grid>
       </div>
     );
   };
 
   return (
-    <div className={classes.container}>
-      <div className={classes.descriptionBox}>
+    <div className="m-auto mb-5 flex w-[calc(100%-40px)] max-w-[1400px] flex-col items-end p-0 pt-20 pb-2 xl:mb-14 xl:w-[calc(100%-180px)] xl:pt-0">
+      <div className="flex flex-col gap-1 self-start text-left">
         <Typography variant="h1">Rewards</Typography>
         <Typography variant="body2">
           Choose your veFLOW and claim your rewards.
         </Typography>
       </div>
-      <div className={classes.toolbarContainer}>
+      <div className="mb-6 flex w-full items-center justify-between">
         <Grid container spacing={1}>
           <Grid item lg="auto" md="auto" sm={12} xs={12}>
-            <div className={classes.tokenIDContainer}>
-              {renderMediumInput(token, vestNFTs)}
-            </div>
+            <div>{renderMediumInput(token, vestNFTs)}</div>
           </Grid>
           <Grid item lg={true} md={true} sm={false} xs={false}>
-            <div className={classes.disclaimerContainer}>
-              <Typography className={classes.disclaimer}>
+            <div className="flex items-center justify-center">
+              <Typography className="rounded-lg border border-cantoGreen bg-[#0e110c] p-5 text-xs font-extralight">
                 Rewards are an estimation that aren't exact till the supply -
                 {">"} rewardPerToken calculations have run
               </Typography>
@@ -266,13 +263,11 @@ export default function ssRewards() {
               color="secondary"
               startIcon={<AddCircleOutline />}
               size="large"
-              className={classes.buttonOverride}
+              className="w-full bg-[#272826] font-bold text-cantoGreen hover:bg-[rgb(19,44,60)]"
               onClick={onClaimAll}
               disabled={loading}
             >
-              <Typography className={classes.actionButtonText}>
-                Claim All
-              </Typography>
+              <Typography className="text-base font-bold">Claim All</Typography>
             </Button>
           </Grid>
         </Grid>
