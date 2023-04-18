@@ -23,12 +23,10 @@ import BigNumber from "bignumber.js";
 
 import VoteManagerDialog from "../voteManager/voteManagerDialog";
 
-import { useAutolock } from "../voteManager/queries";
-import stores from "../../stores";
+import { useResetVest } from "./mutations";
+import { useAutolock } from "../voteManager/mutations";
 import { formatCurrency } from "../../utils/utils";
-import { ACTIONS } from "../../stores/constants/constants";
 import { GovToken, VestNFT, VeToken } from "../../stores/types/types";
-import { useResetVest } from "./queries";
 
 const headCells = [
   { id: "NFT", numeric: false, disablePadding: false, label: "NFT" },

@@ -4,9 +4,8 @@ import { Tooltip, Dialog } from "@mui/material";
 import {
   useAverageNftDelegationAPR,
   useAverageStrategiesDelegationAPR,
-  useDelegate,
-  useUndelegate,
 } from "./queries";
+import { useDelegate, useUndelegate } from "./mutations";
 
 import { VestNFT } from "../../stores/types/types";
 
