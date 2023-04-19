@@ -100,6 +100,7 @@ interface Pair {
     rewardsEarned?: string;
     bribesEarned?: Bribe[];
     bribesEarnedValue?: BribeEarned[];
+    bribeReserve?: string[];
   };
   gaugebribes?: Bribe[];
 }

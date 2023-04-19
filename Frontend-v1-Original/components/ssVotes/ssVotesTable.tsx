@@ -44,6 +44,12 @@ const headCells = [
     label: "Bribes",
   },
   {
+    id: "bchin",
+    numeric: true,
+    disablePadding: false,
+    label: "---",
+  },
+  {
     id: "rewardEstimate",
     numeric: true,
     disablePadding: false,
@@ -437,6 +443,31 @@ function VotesRow({
               </div>
             );
           })}
+        </TableCell>
+        <TableCell align="right">
+          {row.gauge.bribeReserve ? (
+            row.gauge.bribeReserve.map((bribe, idx) => {
+              return (
+                <div
+                  className="flex items-center justify-end"
+                  key={bribe + idx}
+                >
+                  <Typography variant="h2" className="text-xs font-extralight">
+                    {formatCurrency(bribe)}
+                  </Typography>
+                </div>
+              );
+            })
+          ) : (
+            <div className="flex items-center justify-end max-[1000px]:block">
+              <Skeleton
+                variant="rectangular"
+                width={120}
+                height={16}
+                style={{ marginTop: "1px", marginBottom: "1px" }}
+              />
+            </div>
+          )}
         </TableCell>
         <TableCell align="right">
           {!rewardEstimate ? (

@@ -1578,6 +1578,31 @@ class Store {
       const gaugesCallsChunks = chunkArray(gaugesCalls);
       const gaugesData = await multicallChunks(gaugesCallsChunks);
 
+      const bribesReservesCalls = gauges.flatMap((pair) =>
+        pair.gauge.bribes.map(
+          (bribe) =>
+            ({
+              address: bribe.token.address,
+              abi: CONTRACTS.ERC20_ABI,
+              functionName: "balanceOf",
+              args: [pair.gauge.wrapped_bribe_address],
+            } as const)
+        )
+      );
+      const bribesReservesChunks = chunkArray(bribesReservesCalls, 100);
+
+      const bribesReservesData = await multicallChunks(bribesReservesChunks);
+
+      gauges.forEach((pair) => {
+        const bribesReservesPair = bribesReservesData.splice(
+          0,
+          pair.gauge.bribes.length
+        );
+        pair.gauge.bribeReserve = pair.gauge.bribes.map((bribe, i) => {
+          return formatUnits(bribesReservesPair[i], bribe.token.decimals);
+        });
+      });
+
       // this is to increment index only if pair hasGauge
       let outerIndex = 0;
       const ps1 = ps.map((pair) => {
