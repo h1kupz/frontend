@@ -4838,9 +4838,9 @@ class Store {
         console.warn("account not found");
         return null;
       }
-      const web3 = await stores.accountStore.getWeb3Provider();
-      if (!web3) {
-        console.warn("web3 not found");
+      const signer = await stores.accountStore.getEthersSigner();
+      if (!signer) {
+        console.warn("signer not found");
         return null;
       }
 
@@ -4891,6 +4891,12 @@ class Store {
         });
       }
 
+      const voterContract = wGetContract({
+        address: CONTRACTS.VOTER_ADDRESS,
+        abi: CONTRACTS.VOTER_ABI,
+        signerOrProvider: signer,
+      });
+
       if (rewards.bribes.length > 0) {
         const sendGauges = rewards.bribes.map((pair) => {
           return pair.gauge?.wrapped_bribe_address;
@@ -4901,30 +4907,27 @@ class Store {
           });
         });
 
-        const voterContract = new web3.eth.Contract(
-          CONTRACTS.VOTER_ABI as unknown as AbiItem[],
-          CONTRACTS.VOTER_ADDRESS
+        const tx = await voterContract.claimBribes(
+          sendGauges,
+          sendTokens as `0x${string}`[][],
+          ethers.BigNumber.from(tokenID)
         );
 
-        const claimPromise = new Promise<void>((resolve, reject) => {
-          this._callContractWait(
-            voterContract,
-            "claimBribes",
-            [sendGauges, sendTokens, tokenID],
-            account,
-            rewardsTXID,
-            (err) => {
-              if (err) {
-                reject(err);
-                return;
-              }
+        if (tx.hash) {
+          this.emitter.emit(ACTIONS.TX_SUBMITTED, {
+            uuid: rewardsTXID,
+            txHash: tx.hash,
+          });
+        }
 
-              resolve();
-            }
-          );
-        });
+        const rec = await tx.wait(1);
 
-        await claimPromise;
+        if (rec.transactionHash) {
+          this.emitter.emit(ACTIONS.TX_CONFIRMED, {
+            uuid: rewardsTXID,
+            txHash: rec.transactionHash,
+          });
+        }
       }
 
       if (rewards.veDist.length > 0) {
@@ -4942,54 +4945,50 @@ class Store {
 
       if (rewards.veDist.length > 0) {
         // SUBMIT CLAIM TRANSACTION
-        const veDistContract = new web3.eth.Contract(
-          CONTRACTS.VE_DIST_ABI as unknown as AbiItem[],
-          CONTRACTS.VE_DIST_ADDRESS
-        );
-
-        const claimVeDistPromise = new Promise<void>((resolve, reject) => {
-          this._callContractWait(
-            veDistContract,
-            "claim",
-            [tokenID],
-            account,
-            rebaseTXID,
-            (err) => {
-              if (err) {
-                reject(err);
-                return;
-              }
-
-              resolve();
-            }
-          );
+        const veDistContract = wGetContract({
+          abi: CONTRACTS.VE_DIST_ABI,
+          address: CONTRACTS.VE_DIST_ADDRESS,
+          signerOrProvider: signer,
         });
 
-        await claimVeDistPromise;
+        const tx = await veDistContract.claim(ethers.BigNumber.from(tokenID));
+
+        if (tx.hash) {
+          this.emitter.emit(ACTIONS.TX_SUBMITTED, {
+            uuid: rebaseTXID,
+            txHash: tx.hash,
+          });
+        }
+
+        const rec = await tx.wait(1);
+
+        if (rec.transactionHash) {
+          this.emitter.emit(ACTIONS.TX_CONFIRMED, {
+            uuid: rebaseTXID,
+            txHash: rec.transactionHash,
+          });
+        }
       }
 
-      // SUBMIT RESET TRANSACTION
-      const voterContract = new web3.eth.Contract(
-        CONTRACTS.VOTER_ABI as unknown as AbiItem[],
-        CONTRACTS.VOTER_ADDRESS
-      );
+      const tx = await voterContract.reset(ethers.BigNumber.from(tokenID));
 
-      this._callContractWait(
-        voterContract,
-        "reset",
-        [tokenID],
-        account,
-        resetTXID,
-        (err) => {
-          if (err) {
-            return this.emitter.emit(ACTIONS.ERROR, err);
-          }
+      if (tx.hash) {
+        this.emitter.emit(ACTIONS.TX_SUBMITTED, {
+          uuid: resetTXID,
+          txHash: tx.hash,
+        });
+      }
 
-          this._updateVestNFTByID(tokenID);
+      const rec = await tx.wait(1);
 
-          this.emitter.emit(ACTIONS.RESET_VEST_RETURNED);
-        }
-      );
+      if (rec.transactionHash) {
+        this.emitter.emit(ACTIONS.TX_CONFIRMED, {
+          uuid: resetTXID,
+          txHash: rec.transactionHash,
+        });
+        this._updateVestNFTByID(tokenID);
+        this.emitter.emit(ACTIONS.RESET_VEST_RETURNED);
+      }
     } catch (e) {
       console.log(e);
       console.log("RESET VEST ERROR");
