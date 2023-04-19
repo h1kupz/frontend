@@ -6,7 +6,7 @@ import MobileHeader from "../header/mobileHeader";
 import SnackbarController from "../snackbar/snackbarController";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
-import { useSigner } from "wagmi";
+import { useAccount, useSigner } from "wagmi";
 import stores from "../../stores";
 
 export default function Layout({
@@ -19,12 +19,16 @@ export default function Layout({
   const { data: signerData } = useSigner({
     chainId: 7700,
   });
+  const { address } = useAccount();
 
   useEffect(() => {
     if (signerData) {
       stores.accountStore.setStore({ wagmiSigner: signerData });
     }
-  }, [signerData]);
+    if (address) {
+      stores.accountStore.setStore({ account: { address } });
+    }
+  }, [signerData, address]);
 
   return (
     <div className={classes.container}>
