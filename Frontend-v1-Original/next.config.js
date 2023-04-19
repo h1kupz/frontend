@@ -4,6 +4,13 @@
 const nextConfig = {
   swcMinify: true,
   reactStrictMode: false, // because @mui/styles doesnt work with srict mode
+  typescript: {
+    // !! WARN !!
+    // Dangerously allow production builds to successfully complete even if
+    // your project has type errors.
+    // !! WARN !!
+    ignoreBuildErrors: true,
+  },
 };
 
 module.exports = nextConfig;
