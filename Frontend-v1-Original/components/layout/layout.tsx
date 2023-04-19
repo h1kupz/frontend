@@ -1,8 +1,13 @@
+import { useEffect } from "react";
 import Head from "next/head";
 import classes from "./layout.module.css";
 import Header from "../header/header";
 import MobileHeader from "../header/mobileHeader";
 import SnackbarController from "../snackbar/snackbarController";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import "@rainbow-me/rainbowkit/styles.css";
+import { useSigner } from "wagmi";
+import stores from "../../stores";
 
 export default function Layout({
   children,
@@ -11,6 +16,16 @@ export default function Layout({
   children: React.ReactNode;
   configure?: boolean;
 }) {
+  const { data: signerData } = useSigner({
+    chainId: 7700,
+  });
+
+  useEffect(() => {
+    if (signerData) {
+      stores.accountStore.setStore({ wagmiSigner: signerData });
+    }
+  }, [signerData]);
+
   return (
     <div className={classes.container}>
       <Head>
@@ -39,6 +54,7 @@ export default function Layout({
             </div>
             <div className="sticky top-0 z-10 hidden md:block">
               <Header />
+              <ConnectButton />
             </div>
           </>
         )}

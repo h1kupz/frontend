@@ -14,6 +14,7 @@ import {
 } from "./connectors/connectors";
 
 import Web3 from "web3";
+import type { Signer } from "ethers";
 
 type EthWindow = Window &
   typeof globalThis & {
@@ -41,6 +42,7 @@ class Store {
       instant: number;
     };
     gasSpeed: string;
+    wagmiSigner: null | Signer;
   };
 
   constructor(dispatcher: Dispatcher<any>, emitter: EventEmitter) {
@@ -65,6 +67,7 @@ class Store {
         instant: 130,
       },
       gasSpeed: "fast",
+      wagmiSigner: null,
     };
 
     dispatcher.register(
@@ -242,6 +245,10 @@ class Store {
       return null;
     }
     return new Web3(provider);
+  };
+
+  getEthersSigner = () => {
+    return this.getStore("wagmiSigner");
   };
 
   getMulticall = async () => {

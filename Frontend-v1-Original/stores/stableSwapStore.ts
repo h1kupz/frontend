@@ -13,6 +13,8 @@ import {
   formatEther,
   parseEther,
 } from "viem";
+import { ethers } from "ethers";
+import { getContract as wGetContract } from "@wagmi/core";
 
 import { Dispatcher } from "flux";
 import EventEmitter from "events";
@@ -5215,9 +5217,9 @@ class Store {
         return null;
       }
 
-      const web3 = await stores.accountStore.getWeb3Provider();
-      if (!web3) {
-        console.warn("web3 not found");
+      const signer = stores.accountStore.getEthersSigner();
+      if (!signer) {
+        console.warn("signer not found");
         return null;
       }
 
@@ -5275,37 +5277,41 @@ class Store {
           });
         });
 
-        const voterContract = new web3.eth.Contract(
-          CONTRACTS.VOTER_ABI as unknown as AbiItem[],
-          CONTRACTS.VOTER_ADDRESS
-        );
-
-        const claimPromise = new Promise<void>((resolve, reject) => {
-          this._callContractWait(
-            voterContract,
-            "claimBribes",
-            [sendGauges, sendTokens, tokenID],
-            account,
-            bribesTXID,
-            (err) => {
-              if (err) {
-                reject(err);
-                return;
-              }
-
-              resolve();
-            }
-          );
+        const voterContract = wGetContract({
+          address: CONTRACTS.VOTER_ADDRESS,
+          abi: CONTRACTS.VOTER_ABI,
+          signerOrProvider: signer,
         });
 
-        await claimPromise;
+        const tx = await voterContract.claimBribes(
+          sendGauges,
+          sendTokens as `0x${string}`[][],
+          ethers.BigNumber.from(tokenID)
+        );
+
+        if (tx.hash) {
+          this.emitter.emit(ACTIONS.TX_SUBMITTED, {
+            uuid: bribesTXID,
+            txHash: tx.hash,
+          });
+        }
+
+        const rec = await tx.wait(1);
+
+        if (rec.transactionHash) {
+          this.emitter.emit(ACTIONS.TX_CONFIRMED, {
+            uuid: bribesTXID,
+            txHash: rec.transactionHash,
+          });
+        }
       }
 
       // SUBMIT INCREASE TRANSACTION
-      const gaugesContract = new web3.eth.Contract(
-        CONTRACTS.VOTER_ABI as unknown as AbiItem[],
-        CONTRACTS.VOTER_ADDRESS
-      );
+      const gaugesContract = wGetContract({
+        abi: CONTRACTS.VOTER_ABI,
+        address: CONTRACTS.VOTER_ADDRESS,
+        signerOrProvider: signer,
+      });
 
       let onlyVotes = votes.filter((vote) => {
         return BigNumber(vote.value).gt(0) || BigNumber(vote.value).lt(0);
@@ -5340,20 +5346,31 @@ class Store {
         return BigNumber(vote.value).times(100).toFixed(0);
       });
 
-      this._callContractWait(
-        gaugesContract,
-        "vote",
-        [parseInt(tokenID), tokens, voteCounts],
-        account,
-        voteTXID,
-        (err) => {
-          if (err) {
-            return this.emitter.emit(ACTIONS.ERROR, err);
-          }
-
-          this.emitter.emit(ACTIONS.VOTE_RETURNED);
-        }
+      let voteCountsEthersBigNumbers = voteCounts.map((voteCount) =>
+        ethers.BigNumber.from(voteCount)
       );
+
+      const tx = await gaugesContract.vote(
+        ethers.BigNumber.from(tokenID),
+        tokens,
+        voteCountsEthersBigNumbers
+      );
+
+      if (tx.hash) {
+        this.emitter.emit(ACTIONS.TX_SUBMITTED, {
+          uuid: voteTXID,
+          txHash: tx.hash,
+        });
+      }
+
+      const rec = await tx.wait(1);
+
+      if (rec.transactionHash) {
+        this.emitter.emit(ACTIONS.TX_CONFIRMED, {
+          uuid: voteTXID,
+          txHash: rec.transactionHash,
+        });
+      }
     } catch (ex) {
       console.error(ex);
       this.emitter.emit(ACTIONS.ERROR, ex);

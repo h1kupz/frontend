@@ -17,6 +17,7 @@ import { ACTIONS } from "../stores/constants/constants";
 import createEmotionCache from "../utils/createEmotionCache";
 
 import "../styles/global.css";
+import RainbowWagmi from "../stores/connectors/rainbow";
 
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache();
@@ -75,9 +76,11 @@ export default function MyApp({
       </Head>
       <ThemeProvider theme={themeConfig}>
         {accountConfigured ? (
-          <Layout>
-            <Component {...pageProps} />
-          </Layout>
+          <RainbowWagmi>
+            <Layout>
+              <Component {...pageProps} />
+            </Layout>
+          </RainbowWagmi>
         ) : (
           <Configure {...pageProps} />
         )}
