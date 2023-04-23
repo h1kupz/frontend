@@ -5836,7 +5836,7 @@ class Store {
   claimBribes = async (payload: {
     type: string;
     content: {
-      pair: Pair;
+      pair: Gauge;
       tokenID: string;
     };
   }) => {
@@ -5847,9 +5847,9 @@ class Store {
         return null;
       }
 
-      const web3 = await stores.accountStore.getWeb3Provider();
-      if (!web3) {
-        console.warn("web3 not found");
+      const signer = stores.accountStore.getEthersSigner();
+      if (!signer) {
+        console.warn("signer not found");
         return null;
       }
 
@@ -5870,37 +5870,46 @@ class Store {
         ],
       });
 
-      // SUBMIT CLAIM TRANSACTION
-      const gaugesContract = new web3.eth.Contract(
-        CONTRACTS.VOTER_ABI as unknown as AbiItem[],
-        CONTRACTS.VOTER_ADDRESS
-      );
+      const voterContract = wGetContract({
+        address: CONTRACTS.VOTER_ADDRESS,
+        abi: CONTRACTS.VOTER_ABI,
+        signerOrProvider: signer,
+      });
 
-      const sendGauges = [pair.gauge?.wrapped_bribe_address];
+      const sendGauges = [pair.gauge.wrapped_bribe_address];
       const sendTokens = [
-        pair.gauge?.bribesEarned?.map((bribe) => {
+        pair.gauge.bribesEarned?.map((bribe) => {
           return (bribe as Bribe).token.address;
         }),
       ];
 
-      this._callContractWait(
-        gaugesContract,
-        "claimBribes",
-        [sendGauges, sendTokens, tokenID],
-        account,
-        claimTXID,
-        (err) => {
-          if (err) {
-            return this.emitter.emit(ACTIONS.ERROR, err);
-          }
-
-          this.getRewardBalances({
-            type: "Internal rewards balances",
-            content: { tokenID },
-          });
-          this.emitter.emit(ACTIONS.CLAIM_REWARD_RETURNED);
-        }
+      const tx = await voterContract.claimBribes(
+        sendGauges,
+        sendTokens as `0x${string}`[][],
+        ethers.BigNumber.from(tokenID)
       );
+
+      if (tx.hash) {
+        this.emitter.emit(ACTIONS.TX_SUBMITTED, {
+          uuid: claimTXID,
+          txHash: tx.hash,
+        });
+      }
+
+      const rec = await tx.wait(1);
+
+      if (rec.transactionHash) {
+        this.emitter.emit(ACTIONS.TX_CONFIRMED, {
+          uuid: claimTXID,
+          txHash: rec.transactionHash,
+        });
+
+        this.getRewardBalances({
+          type: "Internal rewards balances",
+          content: { tokenID },
+        });
+        this.emitter.emit(ACTIONS.CLAIM_REWARD_RETURNED);
+      }
     } catch (ex) {
       console.error(ex);
       this.emitter.emit(ACTIONS.ERROR, ex);
