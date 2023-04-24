@@ -5750,9 +5750,9 @@ class Store {
         return null;
       }
 
-      const web3 = await stores.accountStore.getWeb3Provider();
-      if (!web3) {
-        console.warn("web3 not found");
+      const signer = stores.accountStore.getEthersSigner();
+      if (!signer) {
+        console.warn("signer not found");
         return null;
       }
 
@@ -5795,66 +5795,56 @@ class Store {
         });
       }
 
-      const allowanceCallsPromises = [];
-
       // SUBMIT REQUIRED ALLOWANCE TRANSACTIONS
       if (BigNumber(allowance).lt(amount)) {
-        const tokenContract = new web3.eth.Contract(
-          CONTRACTS.ERC20_ABI as unknown as AbiItem[],
-          asset.address
-        );
-
-        const tokenPromise = new Promise<void>((resolve, reject) => {
-          this._callContractWait(
-            tokenContract,
-            "approve",
-            // we create bribe on x_wrapped_bribe_address
-            [gauge.gauge?.x_wrapped_bribe_address, MAX_UINT256],
-            account,
-            allowanceTXID,
-            (err) => {
-              if (err) {
-                reject(err);
-                return;
-              }
-
-              resolve();
-            }
-          );
+        const tokenContract = wGetContract({
+          abi: CONTRACTS.ERC20_ABI,
+          address: asset.address,
+          signerOrProvider: signer,
         });
 
-        allowanceCallsPromises.push(tokenPromise);
+        await tokenContract.approve(
+          gauge.gauge?.x_wrapped_bribe_address,
+          ethers.BigNumber.from(MAX_UINT256)
+        );
       }
-
-      const done = await Promise.all(allowanceCallsPromises);
 
       // SUBMIT BRIBE TRANSACTION
       // we bribe x_wrapped_bribe_address
-      const bribeContract = new web3.eth.Contract(
-        CONTRACTS.BRIBE_ABI as unknown as AbiItem[],
-        gauge.gauge?.x_wrapped_bribe_address
-      );
+      const bribeContract = wGetContract({
+        abi: CONTRACTS.BRIBE_ABI,
+        address: gauge.gauge?.x_wrapped_bribe_address,
+        signerOrProvider: signer,
+      });
 
       const sendAmount = BigNumber(amount)
         .times(10 ** asset.decimals)
         .toFixed(0);
 
-      this._callContractWait(
-        bribeContract,
-        "notifyRewardAmount",
-        [asset.address, sendAmount],
-        account,
-        bribeTXID,
-        async (err) => {
-          if (err) {
-            return this.emitter.emit(ACTIONS.ERROR, err);
-          }
-
-          await this.updatePairsCall(account);
-
-          this.emitter.emit(ACTIONS.BRIBE_CREATED);
-        }
+      const tx = await bribeContract.notifyRewardAmount(
+        asset.address,
+        ethers.BigNumber.from(sendAmount)
       );
+
+      if (tx.hash) {
+        this.emitter.emit(ACTIONS.TX_SUBMITTED, {
+          uuid: bribeTXID,
+          txHash: tx.hash,
+        });
+      }
+
+      const rec = await tx.wait(1);
+
+      if (rec.transactionHash) {
+        this.emitter.emit(ACTIONS.TX_CONFIRMED, {
+          uuid: bribeTXID,
+          txHash: rec.transactionHash,
+        });
+
+        await this.updatePairsCall(account);
+
+        this.emitter.emit(ACTIONS.BRIBE_CREATED);
+      }
     } catch (ex) {
       console.error(ex);
       this.emitter.emit(ACTIONS.ERROR, ex);
@@ -5881,60 +5871,6 @@ class Store {
       return null;
     }
   };
-
-  // NOTE: Never being used
-  // getVestBalances = async (payload: {
-  //   type: string;
-  //   content: { tokenID: string };
-  // }) => {
-  //   try {
-  //     const account = stores.accountStore.getStore("account");
-  //     if (!account) {
-  //       console.warn("account not found");
-  //       return null;
-  //     }
-
-  //     const { tokenID } = payload.content;
-  //     const pairs = this.getStore("pairs");
-
-  //     if (!pairs) {
-  //       return null;
-  //     }
-
-  //     if (!tokenID) {
-  //       return;
-  //     }
-
-  //     const filteredPairs = pairs.filter(hasGauge);
-
-  //     const bribesEarned = await Promise.all(
-  //       filteredPairs.map(async (pair) => {
-  //         const bribesEarned = await Promise.all(
-  //           pair.gauge.bribes.map(async (bribe) => {
-  //             const earned = await viemClient.readContract({
-  //               address: pair.gauge.wrapped_bribe_address,
-  //               abi: CONTRACTS.BRIBE_ABI,
-  //               functionName: "earned",
-  //               args: [bribe.token.address, BigInt(tokenID)],
-  //             });
-
-  //             return {
-  //               earned: formatUnits(earned, bribe.token.decimals),
-  //             };
-  //           })
-  //         );
-  //         pair.gauge.bribesEarnedValue = bribesEarned;
-
-  //         return pair;
-  //       })
-  //     );
-
-  //     this.emitter.emit(ACTIONS.VEST_BALANCES_RETURNED, bribesEarned);
-  //   } catch (ex) {
-  //     console.error(ex);
-  //     this.emitter.emit(ACTIONS.ERROR, ex);
-  //   }
-  // };
 
   getRewardBalances = async (payload: {
     type: string;
@@ -6256,7 +6192,7 @@ class Store {
   claimXBribes = async (payload: {
     type: string;
     content: {
-      pair: Pair;
+      pair: Gauge;
       tokenID: string;
     };
   }) => {
@@ -6267,9 +6203,9 @@ class Store {
         return null;
       }
 
-      const web3 = await stores.accountStore.getWeb3Provider();
-      if (!web3) {
-        console.warn("web3 not found");
+      const signer = stores.accountStore.getEthersSigner();
+      if (!signer) {
+        console.warn("signer not found");
         return null;
       }
 
@@ -6291,36 +6227,46 @@ class Store {
       });
 
       // SUBMIT CLAIM TRANSACTION
-      const gaugesContract = new web3.eth.Contract(
-        CONTRACTS.VOTER_ABI as unknown as AbiItem[],
-        CONTRACTS.VOTER_ADDRESS
-      );
+      const voterContract = wGetContract({
+        address: CONTRACTS.VOTER_ADDRESS,
+        abi: CONTRACTS.VOTER_ABI,
+        signerOrProvider: signer,
+      });
 
-      const sendGauges = [pair.gauge?.x_wrapped_bribe_address];
+      const sendGauges = [pair.gauge.wrapped_bribe_address];
       const sendTokens = [
-        pair.gauge?.x_bribesEarned?.map((bribe) => {
+        pair.gauge.bribesEarned?.map((bribe) => {
           return (bribe as Bribe).token.address;
         }),
       ];
 
-      this._callContractWait(
-        gaugesContract,
-        "claimBribes",
-        [sendGauges, sendTokens, tokenID],
-        account,
-        claimTXID,
-        (err) => {
-          if (err) {
-            return this.emitter.emit(ACTIONS.ERROR, err);
-          }
-
-          this.getRewardBalances({
-            type: "Internal rewards balances",
-            content: { tokenID },
-          });
-          this.emitter.emit(ACTIONS.CLAIM_REWARD_RETURNED);
-        }
+      const tx = await voterContract.claimBribes(
+        sendGauges,
+        sendTokens as `0x${string}`[][],
+        ethers.BigNumber.from(tokenID)
       );
+
+      if (tx.hash) {
+        this.emitter.emit(ACTIONS.TX_SUBMITTED, {
+          uuid: claimTXID,
+          txHash: tx.hash,
+        });
+      }
+
+      const rec = await tx.wait(1);
+
+      if (rec.transactionHash) {
+        this.emitter.emit(ACTIONS.TX_CONFIRMED, {
+          uuid: claimTXID,
+          txHash: rec.transactionHash,
+        });
+
+        this.getRewardBalances({
+          type: "Internal rewards balances",
+          content: { tokenID },
+        });
+        this.emitter.emit(ACTIONS.CLAIM_REWARD_RETURNED);
+      }
     } catch (ex) {
       console.error(ex);
       this.emitter.emit(ACTIONS.ERROR, ex);
