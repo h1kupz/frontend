@@ -39,7 +39,9 @@ interface VestNFT {
   lockAmount: string;
   lockEnds: string;
   lockValue: string;
-  voted: boolean;
+  actionedInCurrentEpoch: boolean;
+  reset: boolean;
+  lastVoted: bigint;
 }
 
 interface Bribe {
@@ -48,7 +50,6 @@ interface Bribe {
   rewardAmmount: number;
   rewardAmount?: number; // gets assigned in frontend store and eq rewardAmmount
   earned?: string;
-  tokenPrice?: number;
 }
 
 type BribeEarned = { earned: string };
@@ -86,11 +87,13 @@ interface Pair {
     bribe_address: `0x${string}`;
     fees_address: `0x${string}`;
     wrapped_bribe_address: `0x${string}`;
+    x_wrapped_bribe_address: `0x${string}`;
     reward: number;
     bribeAddress: `0x${string}`;
     feesAddress: `0x${string}`;
     totalSupply: number | string; //gets reassigned to string in frontend store
     bribes: Bribe[];
+    x_bribes: Bribe[];
     // following gets assigned in frontend store
     balance?: string;
     reserve0?: string;
@@ -99,6 +102,7 @@ interface Pair {
     weightPercent?: string;
     rewardsEarned?: string;
     bribesEarned?: Bribe[];
+    x_bribesEarned?: Bribe[];
     bribesEarnedValue?: BribeEarned[];
     bribeReserve?: string[];
   };

@@ -23,12 +23,14 @@ import {
   Gauge,
 } from "../../stores/types/types";
 
-const initialEmptyToken = {
+const initialEmptyToken: VestNFT = {
   id: "0",
   lockAmount: "0",
   lockEnds: "0",
   lockValue: "0",
-  voted: false,
+  actionedInCurrentEpoch: false,
+  reset: false,
+  lastVoted: BigInt(0),
 };
 
 export default function ssRewards() {
@@ -82,9 +84,11 @@ export default function ssRewards() {
       if (
         rew &&
         rew.bribes &&
+        rew.xBribes &&
         rew.rewards &&
         rew.veDist &&
         rew.bribes.length >= 0 &&
+        rew.xBribes.length >= 0 &&
         rew.rewards.length >= 0
       ) {
         setRewards([...rew.bribes, ...rew.rewards, ...rew.veDist]);
@@ -95,9 +99,11 @@ export default function ssRewards() {
       if (
         re &&
         re.bribes &&
+        re.xBribes &&
         re.rewards &&
         re.veDist &&
         re.bribes.length >= 0 &&
+        re.xBribes.length >= 0 &&
         re.rewards.length >= 0
       ) {
         setRewards([...re.bribes, ...re.rewards, ...re.veDist]);
@@ -131,16 +137,11 @@ export default function ssRewards() {
 
     stableSwapUpdated();
 
-    stores.emitter.on(ACTIONS.CLAIM_BRIBE_RETURNED, claimReturned);
     stores.emitter.on(ACTIONS.CLAIM_REWARD_RETURNED, claimReturned);
     // stores.emitter.on(ACTIONS.CLAIM_PAIR_FEES_RETURNED, claimReturned);
     stores.emitter.on(ACTIONS.CLAIM_VE_DIST_RETURNED, claimReturned);
     stores.emitter.on(ACTIONS.CLAIM_ALL_REWARDS_RETURNED, claimAllReturned);
     return () => {
-      stores.emitter.removeListener(
-        ACTIONS.CLAIM_BRIBE_RETURNED,
-        claimReturned
-      );
       stores.emitter.removeListener(
         ACTIONS.CLAIM_REWARD_RETURNED,
         claimReturned
@@ -216,6 +217,7 @@ export default function ssRewards() {
                                 {formatCurrency(option.lockValue)}
                               </Typography>
                               <Typography
+                                align="right"
                                 color="textSecondary"
                                 className={classes.smallerText}
                               >

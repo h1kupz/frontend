@@ -21,7 +21,7 @@ import { ACTIONS } from "../../stores/constants/constants";
 
 import { ArrowBack } from "@mui/icons-material";
 import VestingInfo from "./vestingInfo";
-import { GovToken, VeToken } from "../../stores/types/types";
+import { GovToken, VeToken, VestNFT } from "../../stores/types/types";
 import { lockOptions } from "./lockDuration";
 
 export default function ssLock({
@@ -272,7 +272,7 @@ export default function ssLock({
     const expiry = moment(selectedDate);
     const dayToExpire = expiry.diff(now, "days");
 
-    const tmpNFT = {
+    const tmpNFT: VestNFT = {
       id: "future",
       lockAmount: amount,
       lockValue: BigNumber(amount)
@@ -280,7 +280,9 @@ export default function ssLock({
         .div(1460)
         .toFixed(18),
       lockEnds: expiry.unix().toString(),
-      voted: false,
+      actionedInCurrentEpoch: false,
+      reset: false,
+      lastVoted: BigInt(0),
     };
 
     return (

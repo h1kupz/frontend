@@ -1,4 +1,5 @@
 import { createTheme } from "@mui/material/styles";
+
 import coreTheme from "./coreTheme";
 
 // Create a theme instance.
@@ -16,6 +17,9 @@ const theme = createTheme({
     text: {
       primary: "rgba(255, 255, 255, 0.87)",
       secondary: "#7E99B0",
+    },
+    action: {
+      disabledBackground: 'rgba(255, 255, 255, 0.12)',
     },
     mode: "dark",
   },

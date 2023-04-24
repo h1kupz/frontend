@@ -62,7 +62,7 @@ export default function ssBribes() {
         onClick={onCreate}
       >
         <Typography className={classes.actionButtonText}>
-          Create bribe
+          Create Bribe
         </Typography>
       </Button>
       {/* <div className={classes.bribesContainer}>

@@ -31,24 +31,28 @@ export default function existingLock({
 
   const updateLockAmount = (amount: string) => {
     if (amount === "") {
-      let tmpNFT = {
+      let tmpNFT: VestNFT = {
         id: "future",
         lockAmount: nft.lockAmount,
         lockValue: nft.lockValue,
         lockEnds: nft.lockEnds,
-        voted: false,
+        actionedInCurrentEpoch: nft.actionedInCurrentEpoch,
+        reset: nft.reset,
+        lastVoted: nft.lastVoted,
       };
 
       setFutureNFT(tmpNFT);
       return;
     }
 
-    let tmpNFT = {
+    let tmpNFT: VestNFT = {
       id: "future",
       lockAmount: nft.lockAmount,
       lockValue: nft.lockValue,
       lockEnds: nft.lockEnds,
-      voted: false,
+      actionedInCurrentEpoch: nft.actionedInCurrentEpoch,
+      reset: nft.reset,
+      lastVoted: nft.lastVoted,
     };
 
     const now = moment();
@@ -65,12 +69,14 @@ export default function existingLock({
   };
 
   const updateLockDuration = (val: string) => {
-    let tmpNFT = {
+    let tmpNFT: VestNFT = {
       id: "future",
       lockAmount: nft.lockAmount,
       lockValue: nft.lockValue,
       lockEnds: nft.lockEnds,
-      voted: false,
+      actionedInCurrentEpoch: nft.actionedInCurrentEpoch,
+      reset: nft.reset,
+      lastVoted: nft.lastVoted,
     };
 
     const now = moment();

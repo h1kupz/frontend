@@ -549,7 +549,7 @@ function AssetSelect({
               autoFocus
               variant="outlined"
               fullWidth
-              placeholder="WCANTO, NOTE, 0x..."
+              placeholder="CANTO, NOTE, 0x..."
               value={search}
               onChange={onSearchChanged}
               InputProps={{
@@ -589,7 +589,7 @@ function AssetSelect({
               autoFocus
               variant="outlined"
               fullWidth
-              placeholder="WCANTO, NOTE, 0x..."
+              placeholder="CANTO, NOTE, 0x..."
               value={search}
               onChange={onSearchChanged}
               InputProps={{

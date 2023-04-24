@@ -1071,6 +1071,17 @@ function descendingComparator(a: Pair, b: Pair, orderBy: OrderBy) {
   }
 
   switch (orderBy) {
+    case "pair":
+      let caseA = a.symbol.toLowerCase();
+      let caseB = b.symbol.toLowerCase();
+      if (caseB < caseA) {
+        return -1;
+      }
+      if (caseB > caseA) {
+        return 1;
+      }
+      return 0;
+
     case "balance":
       if (
         !isBaseAsset(a.token0) ||

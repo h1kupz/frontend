@@ -68,6 +68,7 @@ class Store {
     vestNFTs: VestNFT[];
     rewards: {
       bribes: Gauge[];
+      xBribes: Gauge[];
       rewards: Gauge[];
       veDist: VeDistReward[];
     };
@@ -94,6 +95,7 @@ class Store {
       vestNFTs: [],
       rewards: {
         bribes: [],
+        xBribes: [],
         rewards: [],
         veDist: [],
       },
@@ -193,6 +195,9 @@ class Store {
           case ACTIONS.WITHDRAW_VEST:
             this.withdrawVest(payload);
             break;
+          case ACTIONS.MERGE_NFT:
+            this.mergeNft(payload);
+            break;
 
           //VOTE
           case ACTIONS.VOTE:
@@ -204,9 +209,9 @@ class Store {
           case ACTIONS.CREATE_BRIBE:
             this.createBribe(payload);
             break;
-          case ACTIONS.GET_VEST_BALANCES:
-            this.getVestBalances(payload);
-            break;
+          // case ACTIONS.GET_VEST_BALANCES:
+          //   this.getVestBalances(payload);
+          //   break;
 
           //REWARDS
           case ACTIONS.GET_REWARD_BALANCES:
@@ -214,6 +219,9 @@ class Store {
             break;
           case ACTIONS.CLAIM_BRIBE:
             this.claimBribes(payload);
+            break;
+          case ACTIONS.CLAIM_X_BRIBE:
+            this.claimXBribes(payload);
             break;
 
           case ACTIONS.CLAIM_REWARD:
@@ -288,7 +296,7 @@ class Store {
             functionName: "tokenOfOwnerByIndex",
             args: [account.address, BigInt(idx)],
           });
-          const [[lockedAmount, lockedEnd], lockValue] =
+          const [[lockedAmount, lockedEnd], lockValue, voted] =
             await viemClient.multicall({
               allowFailure: false,
               multicallAddress: CONTRACTS.MULTICALL_ADDRESS,
@@ -303,17 +311,25 @@ class Store {
                   functionName: "balanceOfNFT",
                   args: [tokenIndex],
                 },
+                {
+                  ...vestingContract,
+                  functionName: "voted",
+                  args: [tokenIndex],
+                },
               ],
             });
 
-          const voted = await this._checkNFTVotedEpoch(tokenIndex.toString());
+          const [actionedInCurrentEpoch, lastVoted] =
+            await this._checkNFTActionEpoch(tokenIndex.toString());
 
           return {
             id: tokenIndex.toString(),
             lockEnds: lockedEnd.toString(),
             lockAmount: formatUnits(lockedAmount, govToken.decimals),
             lockValue: formatUnits(lockValue, veToken.decimals),
-            voted,
+            actionedInCurrentEpoch,
+            reset: actionedInCurrentEpoch && !voted,
+            lastVoted,
           };
         })
       );
@@ -370,8 +386,8 @@ class Store {
         args: [account.address, BigInt(id)],
       });
 
-      const [[lockedAmount, lockedEnd], lockValue] = await viemClient.multicall(
-        {
+      const [[lockedAmount, lockedEnd], lockValue, voted] =
+        await viemClient.multicall({
           allowFailure: false,
           multicallAddress: CONTRACTS.MULTICALL_ADDRESS,
           contracts: [
@@ -385,11 +401,16 @@ class Store {
               functionName: "balanceOfNFT",
               args: [tokenIndex],
             },
+            {
+              ...vestingContract,
+              functionName: "voted",
+              args: [tokenIndex],
+            },
           ],
-        }
-      );
+        });
 
-      const voted = await this._checkNFTVotedEpoch(id);
+      const [actionedInCurrentEpoch, lastVoted] =
+        await this._checkNFTActionEpoch(id);
 
       const newVestNFTs: VestNFT[] = vestNFTs.map((nft) => {
         if (nft.id == id) {
@@ -398,7 +419,9 @@ class Store {
             lockEnds: lockedEnd.toString(),
             lockAmount: formatUnits(lockedAmount, govToken.decimals),
             lockValue: formatUnits(lockValue, veToken.decimals),
-            voted,
+            actionedInCurrentEpoch,
+            reset: actionedInCurrentEpoch && !voted,
+            lastVoted,
           };
         }
 
@@ -641,6 +664,14 @@ class Store {
           ...bribeContract,
           publicClient: viemClient,
         });
+        const x_bribeContract = {
+          abi: CONTRACTS.BRIBE_ABI,
+          address: thePair.gauge.x_wrapped_bribe_address,
+        } as const;
+        const x_bribeContractInstance = getContract({
+          ...x_bribeContract,
+          publicClient: viemClient,
+        });
 
         const [totalSupply, gaugeBalance, bribeAddress] =
           await viemClient.multicall({
@@ -666,15 +697,47 @@ class Store {
 
         const tokensLength =
           await bribeContractInstance.read.rewardsListLength();
+        const x_tokensLength =
+          await x_bribeContractInstance.read.rewardsListLength();
 
         const arry = Array.from(
           { length: parseInt(tokensLength.toString()) },
+          (v, i) => i
+        );
+        const x_arry = Array.from(
+          { length: parseInt(x_tokensLength.toString()) },
           (v, i) => i
         );
 
         const bribes = await Promise.all(
           arry.map(async (idx) => {
             const tokenAddress = await bribeContractInstance.read.rewards([
+              BigInt(idx),
+            ]);
+
+            const token = await this.getBaseAsset(tokenAddress);
+            if (!token) {
+              return null;
+            }
+
+            const rewardRate = await viemClient.readContract({
+              ...gaugeContract,
+              functionName: "rewardRate",
+              args: [tokenAddress],
+            });
+
+            return {
+              token: token,
+              rewardAmount: formatUnits(
+                rewardRate * BigInt(604800),
+                token.decimals
+              ),
+            };
+          })
+        );
+        const x_bribes = await Promise.all(
+          x_arry.map(async (idx) => {
+            const tokenAddress = await x_bribeContractInstance.read.rewards([
               BigInt(idx),
             ]);
 
@@ -713,6 +776,7 @@ class Store {
           weight: formatEther(gaugeWeight),
           weightPercent,
           bribes: bribes,
+          x_bribes: x_bribes,
         };
       }
 
@@ -981,6 +1045,14 @@ class Store {
           ...bribeContract,
           publicClient: viemClient,
         });
+        const x_bribeContract = {
+          abi: CONTRACTS.BRIBE_ABI,
+          address: thePair.gauge.x_wrapped_bribe_address,
+        } as const;
+        const x_bribeContractInstance = getContract({
+          ...x_bribeContract,
+          publicClient: viemClient,
+        });
 
         const [totalSupply, gaugeBalance, bribeAddress] =
           await viemClient.multicall({
@@ -1006,15 +1078,47 @@ class Store {
 
         const tokensLength =
           await bribeContractInstance.read.rewardsListLength();
+        const x_tokensLength =
+          await bribeContractInstance.read.rewardsListLength();
 
         const arry = Array.from(
           { length: parseInt(tokensLength.toString()) },
+          (v, i) => i
+        );
+        const x_arry = Array.from(
+          { length: parseInt(x_tokensLength.toString()) },
           (v, i) => i
         );
 
         const bribes = await Promise.all(
           arry.map(async (idx) => {
             const tokenAddress = await bribeContractInstance.read.rewards([
+              BigInt(idx),
+            ]);
+
+            const token = await this.getBaseAsset(tokenAddress);
+            if (!token) {
+              return null;
+            }
+
+            const rewardRate = await viemClient.readContract({
+              ...gaugeContract,
+              functionName: "rewardRate",
+              args: [tokenAddress],
+            });
+
+            return {
+              token: token,
+              rewardAmount: formatUnits(
+                rewardRate * BigInt(604800),
+                token.decimals
+              ),
+            };
+          })
+        );
+        const x_bribes = await Promise.all(
+          x_arry.map(async (idx) => {
+            const tokenAddress = await x_bribeContractInstance.read.rewards([
               BigInt(idx),
             ]);
 
@@ -1053,6 +1157,7 @@ class Store {
           weight: formatEther(gaugeWeight),
           weightPercent,
           bribes: bribes,
+          x_bribes: x_bribes,
         };
       }
 
@@ -1389,7 +1494,7 @@ class Store {
             functionName: "tokenOfOwnerByIndex",
             args: [account.address, BigInt(idx)],
           });
-          const [[lockedAmount, lockedEnd], lockValue] =
+          const [[lockedAmount, lockedEnd], lockValue, voted] =
             await viemClient.multicall({
               allowFailure: false,
               multicallAddress: CONTRACTS.MULTICALL_ADDRESS,
@@ -1404,10 +1509,16 @@ class Store {
                   functionName: "balanceOfNFT",
                   args: [tokenIndex],
                 },
+                {
+                  ...vestingContract,
+                  functionName: "voted",
+                  args: [tokenIndex],
+                },
               ],
             });
 
-          const voted = await this._checkNFTVotedEpoch(tokenIndex.toString());
+          const [actionedInCurrentEpoch, lastVoted] =
+            await this._checkNFTActionEpoch(tokenIndex.toString());
 
           // probably do some decimals math before returning info. Maybe get more info. I don't know what it returns.
           return {
@@ -1415,7 +1526,9 @@ class Store {
             lockEnds: lockedEnd.toString(),
             lockAmount: formatUnits(lockedAmount, govToken.decimals),
             lockValue: formatUnits(lockValue, veToken.decimals),
-            voted,
+            actionedInCurrentEpoch,
+            reset: actionedInCurrentEpoch && !voted,
+            lastVoted,
           };
         })
       );
@@ -1617,10 +1730,23 @@ class Store {
 
             const bribes = pair.gauge.bribes.map((bribe) => {
               bribe.rewardAmount = bribe.rewardAmmount;
-              bribe.tokenPrice = this.getStore("tokenPrices").get(
-                bribe.token.address.toLowerCase()
-              );
               return bribe;
+            });
+            pair.gauge.x_bribes.forEach((x_bribe) => {
+              const bribe = bribes.find(
+                (b) => b.token.address === x_bribe.token.address
+              );
+              if (bribe) {
+                bribe.rewardAmount =
+                  bribe.rewardAmmount + x_bribe.rewardAmmount;
+              } else {
+                bribes.push({
+                  token: x_bribe.token,
+                  rewardAmount: x_bribe.rewardAmmount,
+                  reward_ammount: x_bribe.rewardAmmount,
+                  rewardAmmount: x_bribe.rewardAmmount,
+                });
+              }
             });
 
             pair.gauge.balance = formatEther(gaugeBalance);
@@ -1647,6 +1773,7 @@ class Store {
               (Number(gaugeWeight) * 100) /
               Number(totalWeight)
             ).toFixed(2);
+            // NOTE: this is being used in votes table to show aggregated bribes and x_bribes
             pair.gaugebribes = bribes;
             pair.isAliveGauge = isAliveGauge;
             if (isAliveGauge === false) pair.apr = 0;
@@ -1683,65 +1810,87 @@ class Store {
         address: CONTRACTS.VOTER_ADDRESS,
       } as const;
 
-      const baseAssetsBalances = await Promise.all(
-        baseAssets.map(async (asset) => {
-          try {
-            if (asset.address === NATIVE_TOKEN.symbol) {
-              let bal = await viemClient.getBalance({
-                address: account.address,
-              });
-              return {
-                balanceOf: bal.toString(),
-                isWhitelisted: true,
-              };
-            }
+      let baseAssetsWithBalances: BaseAsset[] = [];
 
-            const assetContract = {
-              abi: CONTRACTS.ERC20_ABI,
-              address: asset.address,
-            } as const;
-
-            const [isWhitelisted, balanceOf] = await viemClient.multicall({
-              allowFailure: false,
-              multicallAddress: CONTRACTS.MULTICALL_ADDRESS,
-              contracts: [
-                {
-                  ...voterContract,
-                  functionName: "isWhitelisted",
-                  args: [asset.address],
-                },
-                {
-                  ...assetContract,
-                  functionName: "balanceOf",
-                  args: [account.address],
-                },
-              ],
-            });
-
-            return {
-              balanceOf: balanceOf.toString(),
-              isWhitelisted,
-            };
-          } catch (ex) {
-            console.log("EXCEPTION 3");
-            console.log(asset);
-            console.log(ex);
-            return {
-              balanceOf: "0",
-              isWhitelisted: false,
-            };
-          }
-        })
+      const nativeToken = baseAssets.find(
+        (asset) => asset.address === NATIVE_TOKEN.symbol
       );
-
-      for (let i = 0; i < baseAssets.length; i++) {
-        baseAssets[i].balance = BigNumber(baseAssetsBalances[i].balanceOf)
-          .div(10 ** baseAssets[i].decimals)
-          .toFixed(baseAssets[i].decimals);
-        baseAssets[i].isWhitelisted = baseAssetsBalances[i].isWhitelisted;
+      if (nativeToken) {
+        const balance = await viemClient.getBalance({
+          address: account.address,
+        });
+        baseAssetsWithBalances.push({
+          ...nativeToken,
+          balance: formatUnits(balance, nativeToken.decimals),
+          isWhitelisted: true,
+        } as const);
       }
 
-      this.setStore({ baseAssets });
+      const baseAssetsWithoutNativeToken = baseAssets
+        .map((asset) => {
+          if (asset.address !== NATIVE_TOKEN.symbol) {
+            return asset;
+          }
+        })
+        .filter((asset): asset is BaseAsset => asset !== undefined);
+      if (baseAssetsWithoutNativeToken.length === 0) {
+        console.warn("error in base assets logic");
+        return null;
+      }
+
+      const baseAssetsWhitelistedCalls = baseAssetsWithoutNativeToken.map(
+        (asset) => {
+          return {
+            ...voterContract,
+            functionName: "isWhitelisted",
+            args: [asset.address],
+          } as const;
+        }
+      );
+
+      const baseAssetsBalancesCalls = baseAssetsWithoutNativeToken.map(
+        (asset) => {
+          return {
+            abi: CONTRACTS.ERC20_ABI,
+            address: asset.address,
+            functionName: "balanceOf",
+            args: [account.address],
+          } as const;
+        }
+      );
+
+      const whitelistedCallsChunks = chunkArray(baseAssetsWhitelistedCalls);
+      const baseAssetsWhitelistedResults = await multicallChunks(
+        whitelistedCallsChunks
+      );
+
+      const balancesCallsChunks = chunkArray(baseAssetsBalancesCalls);
+      const baseAssetsBalancesResults = await multicallChunks(
+        balancesCallsChunks
+      );
+
+      for (let i = 0; i < baseAssetsWithoutNativeToken.length; i++) {
+        baseAssetsWithBalances.push({
+          ...baseAssetsWithoutNativeToken[i],
+          balance: formatUnits(
+            baseAssetsBalancesResults[i],
+            baseAssetsWithoutNativeToken[i].decimals
+          ),
+          isWhitelisted: baseAssetsWhitelistedResults[i],
+        });
+      }
+      baseAssets.forEach((baseAsset) => {
+        const baseAssetWithBalance = baseAssetsWithBalances.find(
+          (baseAssetWithBalance) =>
+            baseAssetWithBalance.address === baseAsset.address
+        );
+        if (baseAssetWithBalance) {
+          baseAsset.balance = baseAssetWithBalance.balance;
+          baseAsset.isWhitelisted = baseAssetWithBalance.isWhitelisted;
+        }
+      });
+
+      this.setStore({ baseAssets: baseAssetsWithBalances });
       this.emitter.emit(ACTIONS.UPDATED);
     } catch (ex) {
       console.log(ex);
@@ -4242,7 +4391,7 @@ class Store {
         }
 
         this._getSpecificAssetInfo(account, fromAsset.address);
-        this._getSpecificAssetInfo(account, toAsset.address); // TODO use this
+        this._getSpecificAssetInfo(account, toAsset.address); // TODO use this instead of get balances dispatch?
         this._getPairInfo(account);
 
         this.emitter.emit(ACTIONS.SWAP_RETURNED);
@@ -4475,10 +4624,10 @@ class Store {
           const tokenIndex = await viemClient.readContract({
             ...vestingContract,
             functionName: "tokenOfOwnerByIndex",
-            args: [account.address, BigInt(idx)],
+            args: [account.address, BigInt(idx)] as const,
           });
 
-          const [[lockedAmount, lockedEnd], lockValue] =
+          const [[lockedAmount, lockedEnd], lockValue, voted] =
             await viemClient.multicall({
               allowFailure: false,
               multicallAddress: CONTRACTS.MULTICALL_ADDRESS,
@@ -4493,10 +4642,16 @@ class Store {
                   functionName: "balanceOfNFT",
                   args: [tokenIndex],
                 },
+                {
+                  ...vestingContract,
+                  functionName: "voted",
+                  args: [tokenIndex],
+                },
               ],
             });
 
-          const voted = await this._checkNFTVotedEpoch(tokenIndex.toString());
+          const [actionedInCurrentEpoch, lastVoted] =
+            await this._checkNFTActionEpoch(tokenIndex.toString());
 
           // probably do some decimals math before returning info. Maybe get more info. I don't know what it returns.
           return {
@@ -4504,7 +4659,9 @@ class Store {
             lockEnds: lockedEnd.toString(),
             lockAmount: formatUnits(lockedAmount, govToken.decimals),
             lockValue: formatUnits(lockValue, veToken.decimals),
-            voted,
+            actionedInCurrentEpoch,
+            reset: actionedInCurrentEpoch && !voted,
+            lastVoted,
           };
         })
       );
@@ -5040,8 +5197,8 @@ class Store {
       const { tokenID } = payload.content;
 
       // ADD TRNASCTIONS TO TRANSACTION QUEUE DISPLAY
+      let rewards0TXID = this.getTXUUID();
       let rewardsTXID = this.getTXUUID();
-      let rebaseTXID = this.getTXUUID();
       let resetTXID = this.getTXUUID();
       let vestTXID = this.getTXUUID();
 
@@ -5072,6 +5229,18 @@ class Store {
       await this.getRewardBalances({ type: "internal", content: { tokenID } });
       const rewards = this.getStore("rewards");
 
+      if (rewards.xBribes.length > 0) {
+        this.emitter.emit(ACTIONS.TX_STATUS, {
+          uuid: rewards0TXID,
+          description: `Unclaimed bribes found, claiming`,
+        });
+      } else {
+        this.emitter.emit(ACTIONS.TX_STATUS, {
+          uuid: rewards0TXID,
+          description: `No unclaimed bribes found`,
+          status: "DONE",
+        });
+      }
       if (rewards.bribes.length > 0) {
         this.emitter.emit(ACTIONS.TX_STATUS, {
           uuid: rewardsTXID,
@@ -5083,6 +5252,42 @@ class Store {
           description: `No unclaimed bribes found`,
           status: "DONE",
         });
+      }
+
+      if (rewards.xBribes.length > 0) {
+        const sendGauges = rewards.xBribes.map((pair) => {
+          return pair.gauge?.x_wrapped_bribe_address;
+        });
+        const sendTokens = rewards.xBribes.map((pair) => {
+          return pair.gauge?.x_bribesEarned?.map((bribe) => {
+            return (bribe as Bribe).token.address;
+          });
+        });
+
+        const voterContract = new web3.eth.Contract(
+          CONTRACTS.VOTER_ABI as unknown as AbiItem[],
+          CONTRACTS.VOTER_ADDRESS
+        );
+
+        const claimPromise = new Promise<void>((resolve, reject) => {
+          this._callContractWait(
+            voterContract,
+            "claimBribes",
+            [sendGauges, sendTokens, tokenID],
+            account,
+            rewards0TXID,
+            (err) => {
+              if (err) {
+                reject(err);
+                return;
+              }
+
+              resolve();
+            }
+          );
+        });
+
+        await claimPromise;
       }
 
       if (rewards.bribes.length > 0) {
@@ -5196,16 +5401,67 @@ class Store {
     }
   };
 
-  _checkNFTVotedEpoch = async (tokenID: string) => {
-    const _lastVoted = await viemClient.readContract({
-      address: CONTRACTS.VOTER_ADDRESS,
-      abi: CONTRACTS.VOTER_ABI,
-      functionName: "lastVoted",
-      args: [BigInt(tokenID)],
-    });
+  mergeNft = async (payload: {
+    type: string;
+    content: { from: string; to: string };
+  }) => {
+    try {
+      const account = stores.accountStore.getStore("account");
+      if (!account) {
+        console.warn("account not found");
+        return null;
+      }
+      const web3 = await stores.accountStore.getWeb3Provider();
+      if (!web3) {
+        console.warn("web3 not found");
+        return null;
+      }
+      const { from, to } = payload.content;
+
+      let mergeTXID = this.getTXUUID();
+      this.emitter.emit(ACTIONS.TX_ADDED, {
+        title: `Merge NFT #${from} into #${to}`,
+        verb: "NFT Merged",
+        transactions: [
+          {
+            uuid: mergeTXID,
+            description: `Merging NFT #${from} into #${to}`,
+            status: "WAITING",
+          },
+        ],
+      });
+
+      const votingEscrowContract = new web3.eth.Contract(
+        CONTRACTS.VE_TOKEN_ABI as unknown as AbiItem[],
+        CONTRACTS.VE_TOKEN_ADDRESS
+      );
+      this._callContractWait(
+        votingEscrowContract,
+        "merge",
+        [from, to],
+        account,
+        mergeTXID,
+        (err) => {
+          if (err) {
+            return this.emitter.emit(ACTIONS.ERROR, err);
+          }
+          this.emitter.emit(ACTIONS.MERGE_NFT_RETURNED);
+        }
+      );
+    } catch (e) {
+      console.log(e);
+      this.emitter.emit(ACTIONS.ERROR, e);
+    }
+  };
+
+  // actioned in current epoch
+  // either vote or reset, not both
+  // reset would update lastVoted value as well
+  _checkNFTActionEpoch = async (tokenID: string) => {
+    const _lastVoted = await this._checkNFTLastVoted(tokenID);
 
     // if last voted eq 0, means never voted
-    if (_lastVoted === BigInt("0")) return false;
+    if (_lastVoted === BigInt("0")) return [false, _lastVoted] as const;
     const lastVoted = parseInt(_lastVoted.toString());
 
     let nextEpochTimestamp = this.getStore("updateDate");
@@ -5215,8 +5471,19 @@ class Store {
     }
 
     // 7 days epoch length
-    const votedThisEpoch = lastVoted > nextEpochTimestamp - 7 * 24 * 60 * 60;
-    return votedThisEpoch;
+    const actionedInCurrentEpoch =
+      lastVoted > nextEpochTimestamp - 7 * 24 * 60 * 60;
+    return [actionedInCurrentEpoch, _lastVoted] as const;
+  };
+
+  _checkNFTLastVoted = async (tokenID: string) => {
+    const _lastVoted = await viemClient.readContract({
+      address: CONTRACTS.VOTER_ADDRESS,
+      abi: CONTRACTS.VOTER_ABI,
+      functionName: "lastVoted",
+      args: [BigInt(tokenID)],
+    });
+    return _lastVoted;
   };
 
   _checkNFTVoted = async (tokenID: string) => {
@@ -5541,7 +5808,8 @@ class Store {
           this._callContractWait(
             tokenContract,
             "approve",
-            [gauge.gauge?.wrapped_bribe_address, MAX_UINT256],
+            // we create bribe on x_wrapped_bribe_address
+            [gauge.gauge?.x_wrapped_bribe_address, MAX_UINT256],
             account,
             allowanceTXID,
             (err) => {
@@ -5561,9 +5829,10 @@ class Store {
       const done = await Promise.all(allowanceCallsPromises);
 
       // SUBMIT BRIBE TRANSACTION
+      // we bribe x_wrapped_bribe_address
       const bribeContract = new web3.eth.Contract(
         CONTRACTS.BRIBE_ABI as unknown as AbiItem[],
-        gauge.gauge?.wrapped_bribe_address
+        gauge.gauge?.x_wrapped_bribe_address
       );
 
       const sendAmount = BigNumber(amount)
@@ -5602,7 +5871,8 @@ class Store {
         address: token.address,
         abi: CONTRACTS.ERC20_ABI,
         functionName: "allowance",
-        args: [account.address, pair.gauge.wrapped_bribe_address],
+        // We only bribe x_wrapped_bribe_address
+        args: [account.address, pair.gauge.x_wrapped_bribe_address],
       });
 
       return formatUnits(allowance, token.decimals);
@@ -5612,58 +5882,59 @@ class Store {
     }
   };
 
-  getVestBalances = async (payload: {
-    type: string;
-    content: { tokenID: string };
-  }) => {
-    try {
-      const account = stores.accountStore.getStore("account");
-      if (!account) {
-        console.warn("account not found");
-        return null;
-      }
+  // NOTE: Never being used
+  // getVestBalances = async (payload: {
+  //   type: string;
+  //   content: { tokenID: string };
+  // }) => {
+  //   try {
+  //     const account = stores.accountStore.getStore("account");
+  //     if (!account) {
+  //       console.warn("account not found");
+  //       return null;
+  //     }
 
-      const { tokenID } = payload.content;
-      const pairs = this.getStore("pairs");
+  //     const { tokenID } = payload.content;
+  //     const pairs = this.getStore("pairs");
 
-      if (!pairs) {
-        return null;
-      }
+  //     if (!pairs) {
+  //       return null;
+  //     }
 
-      if (!tokenID) {
-        return;
-      }
+  //     if (!tokenID) {
+  //       return;
+  //     }
 
-      const filteredPairs = pairs.filter(hasGauge);
+  //     const filteredPairs = pairs.filter(hasGauge);
 
-      const bribesEarned = await Promise.all(
-        filteredPairs.map(async (pair) => {
-          const bribesEarned = await Promise.all(
-            pair.gauge.bribes.map(async (bribe) => {
-              const earned = await viemClient.readContract({
-                address: pair.gauge.wrapped_bribe_address,
-                abi: CONTRACTS.BRIBE_ABI,
-                functionName: "earned",
-                args: [bribe.token.address, BigInt(tokenID)],
-              });
+  //     const bribesEarned = await Promise.all(
+  //       filteredPairs.map(async (pair) => {
+  //         const bribesEarned = await Promise.all(
+  //           pair.gauge.bribes.map(async (bribe) => {
+  //             const earned = await viemClient.readContract({
+  //               address: pair.gauge.wrapped_bribe_address,
+  //               abi: CONTRACTS.BRIBE_ABI,
+  //               functionName: "earned",
+  //               args: [bribe.token.address, BigInt(tokenID)],
+  //             });
 
-              return {
-                earned: formatUnits(earned, bribe.token.decimals),
-              };
-            })
-          );
-          pair.gauge.bribesEarnedValue = bribesEarned;
+  //             return {
+  //               earned: formatUnits(earned, bribe.token.decimals),
+  //             };
+  //           })
+  //         );
+  //         pair.gauge.bribesEarnedValue = bribesEarned;
 
-          return pair;
-        })
-      );
+  //         return pair;
+  //       })
+  //     );
 
-      this.emitter.emit(ACTIONS.VEST_BALANCES_RETURNED, bribesEarned);
-    } catch (ex) {
-      console.error(ex);
-      this.emitter.emit(ACTIONS.ERROR, ex);
-    }
-  };
+  //     this.emitter.emit(ACTIONS.VEST_BALANCES_RETURNED, bribesEarned);
+  //   } catch (ex) {
+  //     console.error(ex);
+  //     this.emitter.emit(ACTIONS.ERROR, ex);
+  //   }
+  // };
 
   getRewardBalances = async (payload: {
     type: string;
@@ -5690,9 +5961,12 @@ class Store {
 
       const filteredPairs2 = [...pairs.filter(hasGauge)];
 
+      const x_filteredPairs = [...pairs.filter(hasGauge)];
+
       let veDistReward: VeDistReward[] = [];
 
-      let filteredBribes: Pair[] = []; // Pair with rewardType set to "Bribe"
+      let filteredBribes: Gauge[] = []; // Pair with gauge rewardType set to "Bribe"
+      let x_filteredBribes: Gauge[] = []; // Pair with gauge rewardType set to "XBribe"
 
       if (tokenID) {
         const calls = filteredPairs.flatMap((pair) =>
@@ -5710,6 +5984,21 @@ class Store {
 
         const earnedBribesAllPairs = await multicallChunks(callsChunks);
 
+        const x_calls = x_filteredPairs.flatMap((pair) =>
+          pair.gauge.x_bribes.map(
+            (bribe) =>
+              ({
+                address: pair.gauge.x_wrapped_bribe_address,
+                abi: CONTRACTS.BRIBE_ABI,
+                functionName: "earned",
+                args: [bribe.token.address, BigInt(tokenID)],
+              } as const)
+          )
+        );
+        const x_callsChunks = chunkArray(x_calls, 100);
+
+        const x_earnedBribesAllPairs = await multicallChunks(x_callsChunks);
+
         filteredPairs.forEach((pair) => {
           const earnedBribesPair = earnedBribesAllPairs.splice(
             0,
@@ -5720,6 +6009,22 @@ class Store {
               ...bribe,
               earned: formatUnits(
                 earnedBribesPair[i],
+                bribe.token.decimals
+              ) as `${number}`,
+            };
+          });
+        });
+
+        x_filteredPairs.forEach((pair) => {
+          const x_earnedBribesPair = x_earnedBribesAllPairs.splice(
+            0,
+            pair.gauge.x_bribes.length
+          );
+          pair.gauge.x_bribesEarned = pair.gauge.x_bribes.map((bribe, i) => {
+            return {
+              ...bribe,
+              earned: formatUnits(
+                x_earnedBribesPair[i],
                 bribe.token.decimals
               ) as `${number}`,
             };
@@ -5754,6 +6059,37 @@ class Store {
           })
           .map((pair) => {
             pair.rewardType = "Bribe";
+            return pair;
+          });
+
+        x_filteredBribes = x_filteredPairs
+          .filter((pair) => {
+            if (
+              pair.gauge &&
+              pair.gauge.x_bribesEarned &&
+              pair.gauge.x_bribesEarned.length > 0
+            ) {
+              let shouldReturn = false;
+
+              for (let i = 0; i < pair.gauge.x_bribesEarned.length; i++) {
+                if (
+                  pair.gauge.x_bribesEarned[i].earned &&
+                  parseUnits(
+                    pair.gauge.x_bribesEarned[i].earned as `${number}`,
+                    pair.gauge.x_bribes[i].token.decimals
+                  ) > 0
+                ) {
+                  shouldReturn = true;
+                }
+              }
+
+              return shouldReturn;
+            }
+
+            return false;
+          })
+          .map((pair) => {
+            pair.rewardType = "XBribe";
             return pair;
           });
 
@@ -5803,7 +6139,7 @@ class Store {
         );
       }
 
-      const filteredRewards: Pair[] = []; // Pair with rewardType set to "Reward"
+      const filteredRewards: Gauge[] = []; // Pair with rewardType set to "Reward"
       for (let j = 0; j < rewardsEarned.length; j++) {
         let pair = Object.assign({}, rewardsEarned[j]);
         if (
@@ -5816,8 +6152,9 @@ class Store {
         }
       }
 
-      const rewards = {
+      const rewards: Store["store"]["rewards"] = {
         bribes: filteredBribes,
+        xBribes: x_filteredBribes,
         rewards: filteredRewards,
         veDist: veDistReward,
       };
@@ -5916,6 +6253,80 @@ class Store {
     }
   };
 
+  claimXBribes = async (payload: {
+    type: string;
+    content: {
+      pair: Pair;
+      tokenID: string;
+    };
+  }) => {
+    try {
+      const account = stores.accountStore.getStore("account");
+      if (!account) {
+        console.warn("account not found");
+        return null;
+      }
+
+      const web3 = await stores.accountStore.getWeb3Provider();
+      if (!web3) {
+        console.warn("web3 not found");
+        return null;
+      }
+
+      const { pair, tokenID } = payload.content;
+
+      // ADD TRNASCTIONS TO TRANSACTION QUEUE DISPLAY
+      let claimTXID = this.getTXUUID();
+
+      this.emitter.emit(ACTIONS.TX_ADDED, {
+        title: `Claim rewards for ${pair.token0.symbol}/${pair.token1.symbol}`,
+        verb: "Rewards Claimed",
+        transactions: [
+          {
+            uuid: claimTXID,
+            description: `Claiming your bribes`,
+            status: "WAITING",
+          },
+        ],
+      });
+
+      // SUBMIT CLAIM TRANSACTION
+      const gaugesContract = new web3.eth.Contract(
+        CONTRACTS.VOTER_ABI as unknown as AbiItem[],
+        CONTRACTS.VOTER_ADDRESS
+      );
+
+      const sendGauges = [pair.gauge?.x_wrapped_bribe_address];
+      const sendTokens = [
+        pair.gauge?.x_bribesEarned?.map((bribe) => {
+          return (bribe as Bribe).token.address;
+        }),
+      ];
+
+      this._callContractWait(
+        gaugesContract,
+        "claimBribes",
+        [sendGauges, sendTokens, tokenID],
+        account,
+        claimTXID,
+        (err) => {
+          if (err) {
+            return this.emitter.emit(ACTIONS.ERROR, err);
+          }
+
+          this.getRewardBalances({
+            type: "Internal rewards balances",
+            content: { tokenID },
+          });
+          this.emitter.emit(ACTIONS.CLAIM_REWARD_RETURNED);
+        }
+      );
+    } catch (ex) {
+      console.error(ex);
+      this.emitter.emit(ACTIONS.ERROR, ex);
+    }
+  };
+
   claimAllRewards = async (payload: {
     type: string;
     content: {
@@ -5940,12 +6351,16 @@ class Store {
       const { pairs, tokenID } = payload.content;
 
       // ADD TRNASCTIONS TO TRANSACTION QUEUE DISPLAY
+      let claim0TXID = this.getTXUUID();
       let claimTXID = this.getTXUUID();
       let rewardClaimTXIDs: string[] = [];
       let distributionClaimTXIDs: string[] = [];
 
       let bribePairs = (pairs as Pair[]).filter((pair) => {
         return pair.rewardType === "Bribe";
+      });
+      let xBribePairs = (pairs as Pair[]).filter((pair) => {
+        return pair.rewardType === "XBribe";
       });
 
       let rewardPairs = (pairs as Pair[]).filter((pair) => {
@@ -5956,6 +6371,14 @@ class Store {
         return pair.rewardType === "Distribution";
       });
 
+      const sendGauges0 = xBribePairs.map((pair) => {
+        return pair.gauge?.x_wrapped_bribe_address;
+      });
+      const sendTokens0 = xBribePairs.map((pair) => {
+        return pair.gauge?.x_bribesEarned?.map((bribe) => {
+          return (bribe as Bribe).token.address;
+        });
+      });
       const sendGauges = bribePairs.map((pair) => {
         return pair.gauge?.wrapped_bribe_address;
       });
@@ -5965,7 +6388,11 @@ class Store {
         });
       });
 
-      if (bribePairs.length == 0 && rewardPairs.length == 0) {
+      if (
+        bribePairs.length == 0 &&
+        xBribePairs.length == 0 &&
+        rewardPairs.length == 0
+      ) {
         this.emitter.emit(ACTIONS.ERROR, "Nothing to claim");
         this.emitter.emit(ACTIONS.CLAIM_ALL_REWARDS_RETURNED);
         return;
@@ -5981,6 +6408,13 @@ class Store {
         transactions: [],
       };
 
+      if (xBribePairs.length > 0) {
+        sendOBJ.transactions.push({
+          uuid: claim0TXID,
+          description: `Claiming all your available bribes`,
+          status: TransactionStatus.WAITING,
+        });
+      }
       if (bribePairs.length > 0) {
         sendOBJ.transactions.push({
           uuid: claimTXID,
@@ -6017,6 +6451,33 @@ class Store {
 
       this.emitter.emit(ACTIONS.TX_ADDED, sendOBJ);
 
+      if (xBribePairs.length > 0) {
+        // SUBMIT CLAIM TRANSACTION
+        const gaugesContract = new web3.eth.Contract(
+          CONTRACTS.VOTER_ABI as unknown as AbiItem[],
+          CONTRACTS.VOTER_ADDRESS
+        );
+
+        const claimPromise = new Promise<void>((resolve, reject) => {
+          context._callContractWait(
+            gaugesContract,
+            "claimBribes",
+            [sendGauges0, sendTokens0, tokenID],
+            account,
+            claim0TXID,
+            (err) => {
+              if (err) {
+                reject(err);
+                return;
+              }
+
+              resolve();
+            }
+          );
+        });
+
+        await claimPromise;
+      }
       if (bribePairs.length > 0) {
         // SUBMIT CLAIM TRANSACTION
         const gaugesContract = new web3.eth.Contract(
@@ -6042,7 +6503,7 @@ class Store {
           );
         });
 
-        await Promise.all([claimPromise]);
+        await claimPromise;
       }
 
       if (rewardPairs.length > 0) {

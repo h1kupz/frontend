@@ -32,12 +32,14 @@ import {
 } from "../../stores/types/types";
 import { SelectChangeEvent } from "@mui/material";
 
-const initialEmptyToken = {
+const initialEmptyToken: VestNFT = {
   id: "0",
   lockAmount: "0",
   lockEnds: "0",
   lockValue: "0",
-  voted: false,
+  actionedInCurrentEpoch: false,
+  reset: false,
+  lastVoted: BigInt(0),
 };
 
 export default function ssVotes() {
@@ -251,6 +253,7 @@ export default function ssVotes() {
                                 {formatCurrency(option.lockValue)}
                               </Typography>
                               <Typography
+                                align="right"
                                 color="textSecondary"
                                 className={classes.smallerText}
                               >
