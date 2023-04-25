@@ -6,6 +6,7 @@ import Unlock from "../../components/unlock/unlockModal";
 
 import { ACTIONS } from "../../stores/constants/constants";
 import stores from "../../stores";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 function Liquidity() {
   const accountStore = stores.accountStore.getStore("account");
@@ -63,14 +64,7 @@ function Liquidity() {
               Create a pair or add liquidity to existing stable or volatile
               Liquidity Pairs.
             </Typography>
-            <Button
-              disableElevation
-              className="scale-90 rounded-3xl border border-solid border-green-300 bg-green-300 px-6 pt-3 pb-4 font-bold transition-all duration-300 hover:scale-95 hover:bg-emerald-300"
-              variant="contained"
-              onClick={onAddressClicked}
-            >
-              <Typography>Connect Wallet to Continue</Typography>
-            </Button>
+            <ConnectButton />
           </div>
         </Paper>
       )}

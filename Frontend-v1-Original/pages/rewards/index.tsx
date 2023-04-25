@@ -6,40 +6,11 @@ import Unlock from "../../components/unlock/unlockModal";
 
 import stores from "../../stores";
 import { ACTIONS } from "../../stores/constants/constants";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 function Rewards() {
   const accountStore = stores.accountStore.getStore("account");
   const [account, setAccount] = useState(accountStore);
-  const [unlockOpen, setUnlockOpen] = useState(false);
-
-  useEffect(() => {
-    const accountConfigure = () => {
-      const accountStore = stores.accountStore.getStore("account");
-      setAccount(accountStore);
-      closeUnlock();
-    };
-    const connectWallet = () => {
-      onAddressClicked();
-    };
-
-    stores.emitter.on(ACTIONS.ACCOUNT_CONFIGURED, accountConfigure);
-    stores.emitter.on(ACTIONS.CONNECT_WALLET, connectWallet);
-    return () => {
-      stores.emitter.removeListener(
-        ACTIONS.ACCOUNT_CONFIGURED,
-        accountConfigure
-      );
-      stores.emitter.removeListener(ACTIONS.CONNECT_WALLET, connectWallet);
-    };
-  }, []);
-
-  const onAddressClicked = () => {
-    setUnlockOpen(true);
-  };
-
-  const closeUnlock = () => {
-    setUnlockOpen(false);
-  };
 
   return (
     <div className="relative mt-0 flex h-full w-full flex-col pt-8">
@@ -62,18 +33,10 @@ function Rewards() {
             >
               Claim your share of rewards!
             </Typography>
-            <Button
-              disableElevation
-              className="scale-90 rounded-3xl border border-solid border-green-300 bg-green-300 px-6 pt-3 pb-4 font-bold transition-all duration-300 hover:scale-95 hover:bg-emerald-300"
-              variant="contained"
-              onClick={onAddressClicked}
-            >
-              <Typography>Connect Wallet to Continue</Typography>
-            </Button>
+            <ConnectButton />
           </div>
         </Paper>
       )}
-      {unlockOpen && <Unlock modalOpen={unlockOpen} closeModal={closeUnlock} />}
     </div>
   );
 }

@@ -6,8 +6,9 @@ import MobileHeader from "../header/mobileHeader";
 import SnackbarController from "../snackbar/snackbarController";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
-import { useAccount, useSigner } from "wagmi";
+import { useAccount, useConnect, useNetwork, useSigner } from "wagmi";
 import stores from "../../stores";
+import { ACTIONS } from "../../stores/constants/constants";
 
 export default function Layout({
   children,
@@ -19,7 +20,8 @@ export default function Layout({
   const { data: signerData } = useSigner({
     chainId: 7700,
   });
-  const { address } = useAccount();
+  const { address } = useAccount({});
+  const { chain } = useNetwork();
 
   useEffect(() => {
     if (signerData) {
@@ -27,8 +29,17 @@ export default function Layout({
     }
     if (address) {
       stores.accountStore.setStore({ account: { address } });
+      stores.dispatcher.dispatch({
+        type: ACTIONS.CONFIGURE_SS,
+        content: { connected: true },
+      });
+    } else {
+      stores.accountStore.setStore({ account: null });
     }
-  }, [signerData, address]);
+    if (chain?.unsupported) {
+      stores.accountStore.setStore({ chainInvalid: true });
+    }
+  }, [signerData, address, chain]);
 
   return (
     <div className={classes.container}>

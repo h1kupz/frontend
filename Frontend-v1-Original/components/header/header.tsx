@@ -28,6 +28,9 @@ import useScrollPosition from "../../hooks/useScrollPosition";
 import { ACTIONS } from "../../stores/constants/constants";
 import stores from "../../stores";
 import { formatAddress } from "../../utils/utils";
+import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
+import { useSwitchNetwork } from "wagmi";
+import { canto } from "wagmi/chains";
 
 type EthWindow = Window &
   typeof globalThis & {
@@ -156,15 +159,13 @@ function Header() {
   const [domain, setDomain] = useState<string>();
 
   const scrollPosition = useScrollPosition();
+  const { openConnectModal } = useConnectModal();
+  const { switchNetwork } = useSwitchNetwork({ chainId: canto.id });
 
   useEffect(() => {
     const accountConfigure = () => {
       const accountStore = stores.accountStore.getStore("account");
       setAccount(accountStore);
-      closeUnlock();
-    };
-    const connectWallet = () => {
-      onAddressClicked();
     };
     const accountChanged = () => {
       const invalid = stores.accountStore.getStore("chainInvalid");
@@ -181,39 +182,17 @@ function Header() {
     ssUpdated();
 
     stores.emitter.on(ACCOUNT_CONFIGURED, accountConfigure);
-    stores.emitter.on(CONNECT_WALLET, connectWallet);
     stores.emitter.on(ACCOUNT_CHANGED, accountChanged);
     stores.emitter.on(UPDATED, ssUpdated);
     return () => {
       stores.emitter.removeListener(ACCOUNT_CONFIGURED, accountConfigure);
-      stores.emitter.removeListener(CONNECT_WALLET, connectWallet);
       stores.emitter.removeListener(ACCOUNT_CHANGED, accountChanged);
       stores.emitter.removeListener(UPDATED, ssUpdated);
     };
   }, []);
 
-  const onAddressClicked = () => {
-    setUnlockOpen(true);
-  };
-
-  const closeUnlock = () => {
-    setUnlockOpen(false);
-  };
-
   const setQueueLength = (length: number) => {
     setTransactionQueueLength(length);
-  };
-
-  const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(
-    null
-  );
-
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
   };
 
   return (
@@ -274,67 +253,20 @@ function Header() {
                   color="primary"
                   aria-controls="simple-menu"
                   aria-haspopup="true"
-                  onClick={handleClick}
+                  onClick={
+                    openConnectModal ? () => openConnectModal() : undefined
+                  }
                 >
                   <Typography className="text-sm font-bold">
                     {domain ?? formatAddress(account.address)}
                   </Typography>
                   <ArrowDropDown className="ml-1 -mr-2 -mt-1 text-[#7e99b0]" />
                 </Button>
-                <Menu
-                  elevation={0}
-                  anchorOrigin={{
-                    vertical: "bottom",
-                    horizontal: "right",
-                  }}
-                  transformOrigin={{
-                    vertical: "top",
-                    horizontal: "right",
-                  }}
-                  id="customized-menu"
-                  anchorEl={anchorEl}
-                  keepMounted
-                  open={Boolean(anchorEl)}
-                  onClose={handleClose}
-                >
-                  <MenuItem
-                    onClick={onAddressClicked}
-                    sx={{
-                      root: {
-                        "&:focus": {
-                          backgroundColor: "none",
-                          "& .MuiListItemIcon-root, & .MuiListItemText-primary":
-                            {
-                              color: "#FFF",
-                            },
-                        },
-                      },
-                    }}
-                  >
-                    <ListItemIcon className="p-0 text-cantoGreen">
-                      <AccountBalanceWalletOutlined fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText primary="Switch Wallet Provider" />
-                  </MenuItem>
-                </Menu>
               </>
             ) : (
-              <Button
-                disableElevation
-                className="flex min-h-[40px] items-center rounded-3xl border-none bg-[#040105] px-4 text-[rgba(255,255,255,0.87)] sm:min-h-[50px]"
-                variant="contained"
-                color={"primary"}
-                onClick={onAddressClicked}
-              >
-                <Typography className="text-sm font-bold">
-                  Connect Wallet
-                </Typography>
-              </Button>
+              <ConnectButton />
             )}
           </div>
-          {unlockOpen && (
-            <Unlock modalOpen={unlockOpen} closeModal={closeUnlock} />
-          )}
           <TransactionQueue setQueueLength={setQueueLength} />
         </div>
       </div>
@@ -349,7 +281,9 @@ function Header() {
             <Button
               className="scale-90 rounded-3xl border border-solid border-green-300 bg-green-300 px-6 pt-3 pb-4 font-bold transition-all duration-300 hover:scale-95 hover:bg-emerald-300"
               variant="contained"
-              onClick={() => switchChain()}
+              onClick={
+                switchNetwork ? () => switchNetwork() : () => switchChain()
+              }
             >
               Switch to{" "}
               {process.env.NEXT_PUBLIC_CHAINID == "740"
