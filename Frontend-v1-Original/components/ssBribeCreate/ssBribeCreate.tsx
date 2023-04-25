@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
 import {
   Paper,
@@ -20,7 +20,7 @@ import classes from "./ssBribeCreate.module.css";
 
 import stores from "../../stores";
 import { ACTIONS, ETHERSCAN_URL } from "../../stores/constants/constants";
-import { BaseAsset, Pair, hasGauge } from "../../stores/types/types";
+import { BaseAsset, Gauge, Pair, hasGauge } from "../../stores/types/types";
 import { SelectChangeEvent } from "@mui/material";
 
 export default function ssBribeCreate() {
@@ -31,8 +31,8 @@ export default function ssBribeCreate() {
   const [amountError, setAmountError] = useState<string | false>(false);
   const [asset, setAsset] = useState<BaseAsset | null>(null);
   const [assetOptions, setAssetOptions] = useState<BaseAsset[]>([]);
-  const [gauge, setGauge] = useState<Pair | null>(null);
-  const [gaugeOptions, setGaugeOptions] = useState<Pair[]>([]);
+  const [gauge, setGauge] = useState<Gauge | null>(null);
+  const [gaugeOptions, setGaugeOptions] = useState<Gauge[]>([]);
 
   const ssUpdated = async () => {
     const storeAssetOptions = stores.stableSwapStore.getStore("baseAssets");
@@ -43,9 +43,9 @@ export default function ssBribeCreate() {
     const storePairs = stores.stableSwapStore.getStore("pairs");
     setAssetOptions(filteredStoreAssetOptions);
 
-    const filteredPairs = storePairs.filter(
-      (pair) => pair.gauge && pair.isAliveGauge
-    );
+    const filteredPairs = storePairs
+      .filter(hasGauge)
+      .filter((gauge) => gauge.isAliveGauge);
 
     setGaugeOptions(filteredPairs);
 
@@ -161,92 +161,8 @@ export default function ssBribeCreate() {
     setAsset(value);
   };
 
-  const onGaugeSelect = (event: SelectChangeEvent<Pair | null>) => {
-    setGauge(event.target.value as Pair | null);
-  };
-
-  const renderMassiveGaugeInput = (
-    value: Pair | null,
-    options: Pair[],
-    onChange: (
-      event: SelectChangeEvent<Pair | null>,
-      child: React.ReactNode
-    ) => void
-  ) => {
-    return (
-      <div className={classes.textField}>
-        <div className={classes.massiveInputContainer}>
-          <div className={classes.massiveInputAmount}>
-            <Select
-              fullWidth
-              value={value}
-              onChange={onChange}
-              // @ts-expect-error This is because of how material-ui works
-              InputProps={{
-                className: classes.largeInput,
-              }}
-            >
-              {options &&
-                options.map((option) => {
-                  return (
-                    <MenuItem
-                      key={option.address}
-                      // ok at runtime if MenuItem is an immediate child of Select since value is transferred to data-value.
-                      value={option as any}
-                    >
-                      <div className={classes.menuOption}>
-                        <div className={classes.doubleImages}>
-                          <img
-                            className={`${classes.someIcon} ${classes.img1Logo}`}
-                            alt=""
-                            src={
-                              option && option.token0
-                                ? `${option.token0.logoURI}`
-                                : ""
-                            }
-                            height="70px"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).onerror = null;
-                              (e.target as HTMLImageElement).src =
-                                "/tokens/unknown-logo.png";
-                            }}
-                          />
-                          <img
-                            className={`${classes.someIcon} ${classes.img2Logo}`}
-                            alt=""
-                            src={
-                              option && option.token1
-                                ? `${option.token1.logoURI}`
-                                : ""
-                            }
-                            height="70px"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).onerror = null;
-                              (e.target as HTMLImageElement).src =
-                                "/tokens/unknown-logo.png";
-                            }}
-                          />
-                        </div>
-                        <div>
-                          <Typography className={classes.fillerText}>
-                            {option.token0.symbol}/{option.token1.symbol}
-                          </Typography>
-                          <Typography
-                            color="textSecondary"
-                            className={classes.smallerText}
-                          >
-                            {option?.isStable ? "Stable Pool" : "Volatile Pool"}
-                          </Typography>
-                        </div>
-                      </div>
-                    </MenuItem>
-                  );
-                })}
-            </Select>
-          </div>
-        </div>
-      </div>
-    );
+  const onGaugeSelect = (value: Gauge) => {
+    setGauge(value);
   };
 
   const renderMassiveInput = (
@@ -343,7 +259,11 @@ export default function ssBribeCreate() {
         </div>
         <div className={classes.reAddPadding}>
           <div className={classes.inputsContainer}>
-            {renderMassiveGaugeInput(gauge, gaugeOptions, onGaugeSelect)}
+            <GaugeSelect
+              value={gauge}
+              gaugeOptions={gaugeOptions}
+              onSelect={onGaugeSelect}
+            />
             {renderMassiveInput(
               "amount",
               amountError,
@@ -381,6 +301,176 @@ export default function ssBribeCreate() {
   );
 }
 
+function GaugeSelect({
+  value,
+  gaugeOptions,
+  onSelect,
+}: {
+  value: Gauge | null;
+  gaugeOptions: Gauge[];
+  onSelect: (value: Gauge) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const openSearch = () => {
+    setOpen(true);
+    setSearch("");
+  };
+
+  const onClose = () => {
+    setSearch("");
+    setOpen(false);
+  };
+
+  const onSearchChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(event.target.value);
+  };
+
+  const onLocalSelect = (gauge: Gauge) => {
+    setSearch("");
+    setOpen(false);
+    onSelect(gauge);
+  };
+
+  const filteredGaugeOptions = useMemo(() => {
+    const go = gaugeOptions.filter((gauge) => {
+      if (search && search !== "") {
+        return [gauge.address, gauge.token0.symbol, gauge.token1.symbol].some(
+          (s) => s.toLowerCase().includes(search.trim().toLowerCase())
+        );
+      } else {
+        return true;
+      }
+    });
+
+    return go;
+  }, [search, gaugeOptions]);
+
+  return (
+    <>
+      <div
+        className="relative mb-1 min-h-[100px] cursor-pointer rounded-lg border border-slate-500 p-3 transition-colors hover:border-slate-400"
+        onClick={() => {
+          openSearch();
+        }}
+      >
+        <div className="flex w-[calc(100%-24px)] flex-col items-start py-2 px-3 md:flex-row md:items-center">
+          <div className="relative box-content flex h-20 w-36 p-3">
+            <img
+              className="absolute left-0 top-[calc(50%-1.25rem)] h-10 rounded-full border-4 border-[#212b48] md:top-3 md:h-16"
+              alt=""
+              src={value && value.token0 ? `${value.token0.logoURI}` : ""}
+              onError={(e) => {
+                (e.target as HTMLImageElement).onerror = null;
+                (e.target as HTMLImageElement).src = "/tokens/unknown-logo.png";
+              }}
+            />
+            <img
+              className="absolute left-8 top-[calc(50%-1.25rem)] z-10 h-10 rounded-full border-4 border-[#212b48] md:top-3 md:left-14 md:h-16"
+              alt=""
+              src={value && value.token1 ? `${value.token1.logoURI}` : ""}
+              onError={(e) => {
+                (e.target as HTMLImageElement).onerror = null;
+                (e.target as HTMLImageElement).src = "/tokens/unknown-logo.png";
+              }}
+            />
+          </div>
+          <div>
+            <Typography className="flex-[1] text-xl md:text-3xl">
+              {value ? `${value.token0.symbol}/${value.token1.symbol}` : ""}
+            </Typography>
+            <Typography color="textSecondary" className="mt-1 text-xs">
+              {value?.isStable ? "Stable Pool" : "Volatile Pool"}
+            </Typography>
+          </div>
+        </div>
+      </div>
+      <Dialog
+        onClose={onClose}
+        aria-labelledby="simple-dialog-title"
+        open={open}
+      >
+        <div className="h-[600px] overflow-y-scroll p-6">
+          <TextField
+            autoFocus
+            variant="outlined"
+            fullWidth
+            placeholder="CANTO, NOTE, 0x..."
+            value={search}
+            onChange={onSearchChanged}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search />
+                </InputAdornment>
+              ),
+            }}
+          />
+          <div className="mt-3 flex w-full flex-col md:min-w-[512px]">
+            {filteredGaugeOptions.map((option) => {
+              return (
+                <MenuItem
+                  key={option.address}
+                  // ok at runtime if MenuItem is an immediate child of Select since value is transferred to data-value.
+                  value={option as any}
+                  onClick={() => {
+                    onLocalSelect(option);
+                  }}
+                >
+                  <div className="flex w-[calc(100%-24px)] flex-col items-start py-2 px-3 md:flex-row md:items-center">
+                    <div className="relative flex h-20 w-36 p-3">
+                      <img
+                        className="absolute left-0 top-[calc(50%-1.25rem)] h-10 rounded-full border-4 border-[#212b48] md:top-3 md:h-16"
+                        alt=""
+                        src={
+                          option && option.token0
+                            ? `${option.token0.logoURI}`
+                            : ""
+                        }
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).onerror = null;
+                          (e.target as HTMLImageElement).src =
+                            "/tokens/unknown-logo.png";
+                        }}
+                      />
+                      <img
+                        className="absolute left-8 top-[calc(50%-1.25rem)] z-10 h-10 rounded-full border-4 border-[#212b48] md:top-3 md:left-14 md:h-16"
+                        alt=""
+                        src={
+                          option && option.token1
+                            ? `${option.token1.logoURI}`
+                            : ""
+                        }
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).onerror = null;
+                          (e.target as HTMLImageElement).src =
+                            "/tokens/unknown-logo.png";
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <Typography className="flex-[1] text-xl md:text-3xl">
+                        {option.token0.symbol}/{option.token1.symbol}
+                      </Typography>
+                      <Typography
+                        color="textSecondary"
+                        className="mt-1 text-xs"
+                      >
+                        {option?.isStable ? "Stable Pool" : "Volatile Pool"}
+                      </Typography>
+                    </div>
+                  </div>
+                </MenuItem>
+              );
+            })}
+          </div>
+        </div>
+      </Dialog>
+    </>
+  );
+}
+
 function AssetSelect({
   value,
   assetOptions,
@@ -392,10 +482,6 @@ function AssetSelect({
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [filteredAssetOptions, setFilteredAssetOptions] = useState<BaseAsset[]>(
-    []
-  );
-
   const [manageLocal, setManageLocal] = useState(false);
 
   const openSearch = () => {
@@ -403,26 +489,19 @@ function AssetSelect({
     setSearch("");
   };
 
-  useEffect(
-    function () {
-      let ao = assetOptions.filter((asset) => {
-        if (search && search !== "") {
-          return (
-            asset.address.toLowerCase().includes(search.toLowerCase()) ||
-            asset.symbol.toLowerCase().includes(search.toLowerCase()) ||
-            asset.name.toLowerCase().includes(search.toLowerCase())
-          );
-        } else {
-          return true;
-        }
-      });
+  const filteredAssetOptions = useMemo(() => {
+    const ao = assetOptions.filter((asset) => {
+      if (search && search !== "") {
+        return [asset.address, asset.symbol, asset.name].some((s) =>
+          s.toLowerCase().includes(search.trim().toLowerCase())
+        );
+      } else {
+        return true;
+      }
+    });
 
-      setFilteredAssetOptions(ao);
-
-      return () => {};
-    },
-    [assetOptions, search]
-  );
+    return ao;
+  }, [assetOptions, search]);
 
   const onSearchChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value);
@@ -584,23 +663,21 @@ function AssetSelect({
     return (
       <>
         <div className={classes.searchContainer}>
-          <div className={classes.searchInline}>
-            <TextField
-              autoFocus
-              variant="outlined"
-              fullWidth
-              placeholder="CANTO, NOTE, 0x..."
-              value={search}
-              onChange={onSearchChanged}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Search />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </div>
+          <TextField
+            autoFocus
+            variant="outlined"
+            fullWidth
+            placeholder="CANTO, NOTE, 0x..."
+            value={search}
+            onChange={onSearchChanged}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search />
+                </InputAdornment>
+              ),
+            }}
+          />
           <div className={classes.assetSearchResults}>
             {filteredAssetOptions
               ? filteredAssetOptions
