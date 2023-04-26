@@ -423,7 +423,7 @@ function VotesRow({
                   key={bribe.token.symbol}
                 >
                   <Typography variant="h2" className="text-xs font-extralight">
-                    {formatCurrency(bribe.rewardAmount)}
+                    {bribe.rewardAmount}
                   </Typography>
                   <Typography
                     variant="h5"
@@ -512,7 +512,7 @@ function VotesRow({
                   key={bribe + idx}
                 >
                   <Typography variant="h2" className="text-xs font-extralight">
-                    {formatCurrency(bribe)}
+                    {bribe}
                   </Typography>
                 </div>
               );
