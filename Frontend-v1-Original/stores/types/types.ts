@@ -88,12 +88,14 @@ interface Pair {
     fees_address: `0x${string}`;
     wrapped_bribe_address: `0x${string}`;
     x_wrapped_bribe_address: `0x${string}`;
+    xx_wrapped_bribe_address: `0x${string}`;
     reward: number;
     bribeAddress: `0x${string}`;
     feesAddress: `0x${string}`;
     totalSupply: number | string; //gets reassigned to string in frontend store
     bribes: Bribe[];
     x_bribes: Bribe[];
+    xx_bribes: Bribe[];
     // following gets assigned in frontend store
     balance?: string;
     reserve0?: string;
@@ -103,6 +105,7 @@ interface Pair {
     rewardsEarned?: string;
     bribesEarned?: Bribe[];
     x_bribesEarned?: Bribe[];
+    xx_bribesEarned?: Bribe[];
     bribesEarnedValue?: BribeEarned[];
     bribeReserve?: string[];
   };
@@ -272,7 +275,7 @@ interface Swap {
   to: `0x${string}`;
   amountFrom: string;
   amountTo: string;
-  pool: string;
+  pool: `0x${string}`;
   swapFee: number;
   dex: string;
   meta?: {
