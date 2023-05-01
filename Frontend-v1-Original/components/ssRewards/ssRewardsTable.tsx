@@ -175,6 +175,11 @@ export default function EnhancedTable({
         type: ACTIONS.CLAIM_BRIBE,
         content: { pair: reward, tokenID },
       });
+    } else if (reward.rewardType === "XXBribe") {
+      stores.dispatcher.dispatch({
+        type: ACTIONS.CLAIM_XX_BRIBE,
+        content: { pair: reward, tokenID },
+      });
     } else if (reward.rewardType === "XBribe") {
       stores.dispatcher.dispatch({
         type: ACTIONS.CLAIM_X_BRIBE,
@@ -228,7 +233,7 @@ export default function EnhancedTable({
                     >
                       <TableCell>
                         {isGaugeReward(row) &&
-                          ["Bribe", "XBribe", "Reward"].includes(
+                          ["Bribe", "XBribe", "XXBribe", "Reward"].includes(
                             row.rewardType ?? ""
                           ) && (
                             <div className="flex items-center">
@@ -281,7 +286,10 @@ export default function EnhancedTable({
                                   className="text-xs font-extralight"
                                   color="textSecondary"
                                 >
-                                  {row?.rewardType}
+                                  {row?.rewardType !== "XBribe" &&
+                                  row.rewardType !== "XXBribe"
+                                    ? row?.rewardType
+                                    : "Bribe"}
                                 </Typography>
                               </div>
                             </div>
@@ -392,6 +400,52 @@ export default function EnhancedTable({
                             )}
                           {row &&
                             row.rewardType === "XBribe" &&
+                            row.gauge &&
+                            row.gauge.balance &&
+                            row.gauge.totalSupply && (
+                              <>
+                                <div className="flex items-center justify-end">
+                                  <Typography
+                                    variant="h2"
+                                    className="text-xs font-extralight"
+                                  >
+                                    {formatCurrency(
+                                      BigNumber(row.gauge.balance)
+                                        .div(row.gauge.totalSupply)
+                                        .times(row.gauge.reserve0 ?? 0)
+                                    )}
+                                  </Typography>
+                                  <Typography
+                                    variant="h5"
+                                    className={`min-w-[40px] text-xs font-extralight`}
+                                    color="textSecondary"
+                                  >
+                                    {row.token0.symbol}
+                                  </Typography>
+                                </div>
+                                <div className="flex items-center justify-end">
+                                  <Typography
+                                    variant="h5"
+                                    className="text-xs font-extralight"
+                                  >
+                                    {formatCurrency(
+                                      BigNumber(row.gauge.balance)
+                                        .div(row.gauge.totalSupply)
+                                        .times(row.gauge.reserve1 ?? 0)
+                                    )}
+                                  </Typography>
+                                  <Typography
+                                    variant="h5"
+                                    className={`min-w-[40px] text-xs font-extralight`}
+                                    color="textSecondary"
+                                  >
+                                    {row.token1.symbol}
+                                  </Typography>
+                                </div>
+                              </>
+                            )}
+                          {row &&
+                            row.rewardType === "XXBribe" &&
                             row.gauge &&
                             row.gauge.balance &&
                             row.gauge.totalSupply && (
@@ -556,6 +610,51 @@ export default function EnhancedTable({
                             row.gauge.x_bribesEarned.map((bribe) => {
                               return (
                                 <div className="flex items-center justify-end">
+                                  <img
+                                    className="rounded-[30px] border-[3px] border-[rgb(25,33,56)]"
+                                    src={
+                                      bribe &&
+                                      bribe.token &&
+                                      bribe.token.logoURI
+                                        ? bribe.token.logoURI
+                                        : ``
+                                    }
+                                    width="24"
+                                    height="24"
+                                    alt=""
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).onerror =
+                                        null;
+                                      (e.target as HTMLImageElement).src =
+                                        "/tokens/unknown-logo.png";
+                                    }}
+                                  />
+                                  <Typography
+                                    variant="h2"
+                                    className="pl-3 text-xs font-extralight"
+                                  >
+                                    {formatCurrency(bribe.earned)}
+                                  </Typography>
+                                  <Typography
+                                    variant="h5"
+                                    className="pl-3 text-xs font-extralight"
+                                    color="textSecondary"
+                                  >
+                                    {bribe.token?.symbol}
+                                  </Typography>
+                                </div>
+                              );
+                            })}
+                          {row &&
+                            row.rewardType === "XXBribe" &&
+                            row.gauge &&
+                            row.gauge.xx_bribesEarned &&
+                            row.gauge.xx_bribesEarned.map((bribe) => {
+                              return (
+                                <div
+                                  className="flex items-center justify-end"
+                                  key={bribe.token.address}
+                                >
                                   <img
                                     className="rounded-[30px] border-[3px] border-[rgb(25,33,56)]"
                                     src={
